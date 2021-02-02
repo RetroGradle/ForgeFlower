@@ -5,7 +5,7 @@ Subject: [PATCH] Bulk decompilation test for all to use
 
 
 diff --git a/build.gradle b/build.gradle
-index bc211f2219fbcef72a0acca7b79f5c41fcf0affa..cf3d8ec6b2fe4260b788b46643e8a397e5d63e18 100644
+index b07b27ac85efa26329091d217623301bc3cdba45..7dec9ec6fb04c6cd2081f2e452d072f7451ddcad 100644
 --- a/build.gradle
 +++ b/build.gradle
 @@ -17,6 +17,11 @@ sourceSets {

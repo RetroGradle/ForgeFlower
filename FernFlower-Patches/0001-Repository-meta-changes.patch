@@ -1,8 +1,10 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lex Manos <LexManos@gmail.com>
 Date: Sat, 1 Aug 2015 11:35:52 -0700
-Subject: [PATCH] Add Gradlew wrapper and deploy to Forge Maven.
+Subject: [PATCH] Repository meta changes
 
+SHA1 of original commits:
+59d19c77, d51c33c3, 77fcea54, 37cb58c7, 70c73055
 
 diff --git a/.gitignore b/.gitignore
 new file mode 100644
@@ -31,7 +33,7 @@ index 0000000000000000000000000000000000000000..f7284b5aab48e6a6430698fe3c0eb204
 +
 diff --git a/build.gradle b/build.gradle
 new file mode 100644
-index 0000000000000000000000000000000000000000..4ba85eec08fc56b667cb9d690a9ef46b8c389c82
+index 0000000000000000000000000000000000000000..b07b27ac85efa26329091d217623301bc3cdba45
 --- /dev/null
 +++ b/build.gradle
 @@ -0,0 +1,90 @@
@@ -40,9 +42,9 @@ index 0000000000000000000000000000000000000000..4ba85eec08fc56b667cb9d690a9ef46b
 +apply plugin: 'maven'
 +apply plugin: 'java'
 +
-+version = "1.0"
++version = "0.2.3"
 +group = "net.minecraftforge" //not sure if we shoulkd publish under this name, but it's our fork so meh
-+archivesBaseName = "fernflower"
++archivesBaseName = "forgeflower"
 +
 +sourceCompatibility = '1.6'
 +targetCompatibility = '1.6'
@@ -1033,7 +1035,7 @@ index 0000000000000000000000000000000000000000..6b29cc3b32bbc645809e39aafc559bf3
 +zipStorePath=wrapper/dists
 +distributionUrl=https\://services.gradle.org/distributions/gradle-2.2.1-bin.zip
 diff --git a/gradlew b/gradlew
-new file mode 100644
+new file mode 100755
 index 0000000000000000000000000000000000000000..91a7e269e19dfc62e27137a0b57ef3e430cee4fd
 --- /dev/null
 +++ b/gradlew
