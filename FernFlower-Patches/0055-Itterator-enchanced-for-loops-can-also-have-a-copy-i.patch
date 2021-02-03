@@ -6,7 +6,7 @@ Subject: [PATCH] Itterator enchanced for loops can also have a 'copy'
 
 
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
-index 4bd867c67b88716509572a10712b1ff5fad3c7dc..54794ccdc251982395b75c30f3a3a9970bcf3afd 100644
+index c240daa740a7766b1541dc8aea73025cb9486ac7..3025737508432bebbbd645908852f93d44dd384f 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
 @@ -491,6 +491,18 @@ public class MergeHelper {

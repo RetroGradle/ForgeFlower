@@ -79,7 +79,7 @@ index 62d52975708c5a8126bdc73824fe575b14dea108..2e1668de1af3414bfbed0bf724616882
        return sb.toString();
    }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
-index f354f0684b4d16e8dcd08b2ce6db76210249b571..4bd867c67b88716509572a10712b1ff5fad3c7dc 100644
+index 11c7c599d4413cb46b58906f4b7fdbe4a019e1f0..c240daa740a7766b1541dc8aea73025cb9486ac7 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
 @@ -358,6 +358,8 @@ public class MergeHelper {
