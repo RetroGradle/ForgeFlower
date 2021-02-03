@@ -6,7 +6,7 @@ Subject: [PATCH] Do not merge varaibles when the to target is read further in
 
 
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index fcd8c64de9c7d3af4e9ce943c41dd58ced598014..6566ca75db19a863a54b69ededffc31a2ab3ea55 100644
+index 1c51e101667113131851f91c96f5a64c5d1a22ba..04a36a242b83eb09c5a9bffcb31832329c49df9e 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -36,6 +36,7 @@ import org.jetbrains.java.decompiler.struct.StructMethod;

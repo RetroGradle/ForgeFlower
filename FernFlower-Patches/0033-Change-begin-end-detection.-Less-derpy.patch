@@ -4,8 +4,65 @@ Date: Sun, 13 Sep 2015 18:26:04 -0400
 Subject: [PATCH] Change begin/end detection. Less derpy.
 
 
+diff --git a/src/org/jetbrains/java/decompiler/code/cfg/BasicBlock.java b/src/org/jetbrains/java/decompiler/code/cfg/BasicBlock.java
+index a36047be9d5aaafd1e37ea1fc4ed861b7e26e5c9..407aaa96659637e8a746a5e21e6a30d07e09aa31 100644
+--- a/src/org/jetbrains/java/decompiler/code/cfg/BasicBlock.java
++++ b/src/org/jetbrains/java/decompiler/code/cfg/BasicBlock.java
+@@ -264,17 +264,17 @@ public class BasicBlock implements IGraphNode {
+   }
+ 
+   public int getStartInstruction() {
+-      if (seq.isEmpty()) {
+-          return 0;
+-      }
+-      return instrOldOffsets.get(0);
++    if (seq.isEmpty()) {
++      return 0;
++    }
++    return instrOldOffsets.get(0);
+   }
+ 
+   public int getEndInstruction() {
+-      if (seq.isEmpty()) {
+-          return 0;
+-      }
+-      int end = seq.getLastInstr().length();
+-      return end + instrOldOffsets.get(size() -1);
++    if (seq.isEmpty()) {
++      return 0;
++    }
++    int end = seq.getLastInstr().length();
++    return end + instrOldOffsets.get(size() -1);
+   }
+ }
+diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/BasicBlockStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/BasicBlockStatement.java
+index 762fd011314ca3f5c7fdc370ffe2bccdbb01a509..e68cb97ea66761387a6d05a8b38f0f1bf0e1225e 100644
+--- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/BasicBlockStatement.java
++++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/BasicBlockStatement.java
+@@ -24,6 +24,7 @@ import org.jetbrains.java.decompiler.main.TextBuffer;
+ import org.jetbrains.java.decompiler.main.collectors.BytecodeMappingTracer;
+ import org.jetbrains.java.decompiler.main.collectors.CounterContainer;
+ import org.jetbrains.java.decompiler.modules.decompiler.ExprProcessor;
++import org.jetbrains.java.decompiler.modules.decompiler.vars.StartEndPair;
+ 
+ public class BasicBlockStatement extends Statement {
+ 
+@@ -94,4 +95,13 @@ public class BasicBlockStatement extends Statement {
+   public BasicBlock getBlock() {
+     return block;
+   }
++
++  @Override
++  public StartEndPair getStartEndRange() {
++    if (block.size() > 0) {
++      return new StartEndPair(block.getStartInstruction(), block.getEndInstruction());
++    } else {
++      return null;
++    }
++  }
+ }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
-index e7220368e6116aec755c46f25e397bf6f8f76443..455e9876fc9d44efbed741fe5b10a50f676e4e6e 100644
+index e7220368e6116aec755c46f25e397bf6f8f76443..acc74a60fd6a90ad15959f6c3164757390542ada 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
 @@ -21,6 +21,7 @@ import org.jetbrains.java.decompiler.modules.decompiler.ExprProcessor;
@@ -16,18 +73,8 @@ index e7220368e6116aec755c46f25e397bf6f8f76443..455e9876fc9d44efbed741fe5b10a50f
  
  import java.util.ArrayList;
  import java.util.List;
-@@ -242,4 +243,9 @@ public class DoStatement extends Statement {
-   public void setLooptype(int looptype) {
-     this.looptype = looptype;
-   }
-+
-+  @Override
-+    public StartEndPair getStartEndRange() {
-+        return super.getStartEndRange();
-+    }
- }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/IfStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/IfStatement.java
-index 8be0dcc0ca2e0e3a9da1f5f92d625ee25f7d7e7a..f216b73fe7480b9425608a1b19b48ef6de6424bc 100644
+index 8be0dcc0ca2e0e3a9da1f5f92d625ee25f7d7e7a..8f3e4679be0d5821df94253a9f58082aa4f236d4 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/IfStatement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/IfStatement.java
 @@ -22,6 +22,7 @@ import org.jetbrains.java.decompiler.modules.decompiler.ExprProcessor;
@@ -60,7 +107,7 @@ index 8be0dcc0ca2e0e3a9da1f5f92d625ee25f7d7e7a..f216b73fe7480b9425608a1b19b48ef6
      if(matchNode.getType() == MatchNode.MATCHNODE_EXPRENT) {
        String position = (String)matchNode.getRuleValue(MatchProperties.EXPRENT_POSITION);
        if("head".equals(position)) {
-@@ -459,8 +460,12 @@ public class IfStatement extends Statement {
+@@ -459,8 +460,14 @@ public class IfStatement extends Statement {
          return false;
        }
      }
@@ -71,12 +118,14 @@ index 8be0dcc0ca2e0e3a9da1f5f92d625ee25f7d7e7a..f216b73fe7480b9425608a1b19b48ef6
 -  
 +
 +  @Override
-+    public StartEndPair getStartEndRange() {
-+        return StartEndPair.join(super.getStartEndRange(),ifstat != null ? ifstat.getStartEndRange() : null,elsestat != null ? elsestat.getStartEndRange(): null);
-+    }
++  public StartEndPair getStartEndRange() {
++    return StartEndPair.join(super.getStartEndRange(),
++      ifstat != null ? ifstat.getStartEndRange() : null,
++      elsestat != null ? elsestat.getStartEndRange(): null);
++  }
  }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/RootStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/RootStatement.java
-index 7193f9a787a2b849aac667354b6931e4ed2816d8..0a1e798299c913755fd7b99a8afe10ca34e27d20 100644
+index 7193f9a787a2b849aac667354b6931e4ed2816d8..d8329ff22605f0ef278cefc29483eb760b90a02f 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/RootStatement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/RootStatement.java
 @@ -18,6 +18,7 @@ package org.jetbrains.java.decompiler.modules.decompiler.stats;
@@ -93,12 +142,12 @@ index 7193f9a787a2b849aac667354b6931e4ed2816d8..0a1e798299c913755fd7b99a8afe10ca
    }
 +
 +  @Override
-+    public StartEndPair getStartEndRange() {
-+        return first.getStartEndRange();
-+    }
++  public StartEndPair getStartEndRange() {
++    return first.getStartEndRange();
++  }
  }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/SequenceStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/SequenceStatement.java
-index 7d2ee435ce1c153b6da410d825d697d9790e35fe..b3785fb3235dd593ce293d0c6677546a361fb489 100644
+index 7d2ee435ce1c153b6da410d825d697d9790e35fe..81d31a58f6a913ddc4f5a89ae22fe69f98c63f3e 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/SequenceStatement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/SequenceStatement.java
 @@ -20,6 +20,7 @@ import org.jetbrains.java.decompiler.main.collectors.BytecodeMappingTracer;
@@ -109,18 +158,8 @@ index 7d2ee435ce1c153b6da410d825d697d9790e35fe..b3785fb3235dd593ce293d0c6677546a
  
  import java.util.Arrays;
  import java.util.List;
-@@ -137,4 +138,9 @@ public class SequenceStatement extends Statement {
-   public Statement getSimpleCopy() {
-     return new SequenceStatement();
-   }
-+
-+  @Override
-+    public StartEndPair getStartEndRange() {
-+        return super.getStartEndRange();
-+    }
- }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/Statement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/Statement.java
-index c12605070b1de0bd65ebed44eacb25467666efbc..806c4d57423605f5b11b33f8647734646473b00c 100644
+index c12605070b1de0bd65ebed44eacb25467666efbc..f71ed84bc4ad195a97b4c535f21b55a9568cac62 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/Statement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/Statement.java
 @@ -24,6 +24,7 @@ import org.jetbrains.java.decompiler.main.collectors.CounterContainer;
@@ -139,26 +178,25 @@ index c12605070b1de0bd65ebed44eacb25467666efbc..806c4d57423605f5b11b33f864773464
 -public SequenceStatement getParentSequenceStat() {
 -    if (parentSeqStat == null) {
 -        parentSeqStat = (getParent()!=null && getParent().type == TYPE_SEQUENCE) ? (SequenceStatement)getParent() : new SequenceStatement(Arrays.asList(this));
--    }
++  private StartEndPair endpoints;
++  public StartEndPair getStartEndRange() {
++    if (endpoints == null) {
++      int start = Integer.MAX_VALUE;
++      int end   = Integer.MIN_VALUE;
++      for (Statement st : getStats()) {
++        start = Math.min(start, st.getBasichead().getBlock().getStartInstruction());
++        end   = Math.max(end,   st.getBasichead().getBlock().getEndInstruction());
++      }
++      endpoints = new StartEndPair(start, end);
+     }
 -    return parentSeqStat;
 -}
 -
-+  private StartEndPair endpoints;
-+  public StartEndPair getStartEndRange() {
-+      if (endpoints == null) {
-+          int start = Integer.MAX_VALUE;
-+          int end = Integer.MIN_VALUE;
-+          for (Statement st : getStats()) {
-+              start = Math.min(start, st.getBasichead().getBlock().getStartInstruction());
-+              end = Math.max(end, st.getBasichead().getBlock().getEndInstruction());
-+          }
-+          endpoints = new StartEndPair(start,end);
-+      }
-+      return endpoints;
++    return endpoints;
 +  }
  }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/SwitchStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/SwitchStatement.java
-index 59164900d91a1d02526de1ab32958fac7083357b..8d7127cc348720d35f161c5c92c7fb66c2bd7ddb 100644
+index 59164900d91a1d02526de1ab32958fac7083357b..3e272016903de00ee47c55fad62db4b0687a04b5 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/SwitchStatement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/SwitchStatement.java
 @@ -27,6 +27,7 @@ import org.jetbrains.java.decompiler.modules.decompiler.StatEdge;
@@ -175,29 +213,47 @@ index 59164900d91a1d02526de1ab32958fac7083357b..8d7127cc348720d35f161c5c92c7fb66
    }
 +
 +  @Override
-+    public StartEndPair getStartEndRange() {
-+      StartEndPair[] sepairs = new StartEndPair[caseStatements.size() + 1];
-+      int i = 0;
-+      sepairs[i++] = super.getStartEndRange();
-+      for (Statement st : caseStatements) {
-+          sepairs[i++] = st.getStartEndRange();
-+      }
-+      return StartEndPair.join(sepairs);
++  public StartEndPair getStartEndRange() {
++    StartEndPair[] sepairs = new StartEndPair[caseStatements.size() + 1];
++    int i = 0;
++    sepairs[i++] = super.getStartEndRange();
++    for (Statement st : caseStatements) {
++      sepairs[i++] = st.getStartEndRange();
 +    }
++    return StartEndPair.join(sepairs);
++  }
  }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LocalVariableTable.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LocalVariableTable.java
-index 1de71812af2089eb1445f9b8448c1a8086b1d435..fe45b111874c303e7a0e839e1ef358131bc320a2 100644
+index 1de71812af2089eb1445f9b8448c1a8086b1d435..7f3447bcf43c09321eeb34e8e62185bb6a38a261 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LocalVariableTable.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LocalVariableTable.java
-@@ -3,6 +3,7 @@ package org.jetbrains.java.decompiler.modules.decompiler.vars;
+@@ -1,14 +1,11 @@
+ package org.jetbrains.java.decompiler.modules.decompiler.vars;
+ 
  import java.util.ArrayList;
- import java.util.BitSet;
+-import java.util.BitSet;
  import java.util.HashMap;
-+import java.util.HashSet;
  import java.util.List;
  import java.util.Map;
  import java.util.Set;
-@@ -88,18 +89,10 @@ public class LocalVariableTable {
+ 
+-import org.jetbrains.java.decompiler.main.rels.MethodProcessorRunnable;
+-import org.jetbrains.java.decompiler.modules.decompiler.stats.SequenceStatement;
+ import org.jetbrains.java.decompiler.modules.decompiler.stats.Statement;
+ 
+ public class LocalVariableTable {
+@@ -77,8 +74,8 @@ public class LocalVariableTable {
+       versions.put(lvt.index, idx);
+       List<LVTVariable> lvtList = mapLVT.get(lvt.index);
+       if (lvtList == null) {
+-          lvtList = new ArrayList<LVTVariable>();
+-          mapLVT.put(lvt.index, lvtList);
++        lvtList = new ArrayList<LVTVariable>();
++        mapLVT.put(lvt.index, lvtList);
+       }
+       lvtList.add(lvt);
+     }
+@@ -88,33 +85,17 @@ public class LocalVariableTable {
      return getMapVarNames().get(index);
    }
  
@@ -212,14 +268,34 @@ index 1de71812af2089eb1445f9b8448c1a8086b1d435..fe45b111874c303e7a0e839e1ef35813
 -    //System.out.println(indent + stat.getClass().getSimpleName() + " (" + start +", " + end + ")");
 -
 -    StartEndPair sepair = new StartEndPair(start, end);
--    Map<Integer, LVTVariable> ret = new HashMap<Integer, LVTVariable>();
 +  public Map<Integer, LVTVariable> getVars(Statement statement) {
-+      HashMap<Integer,LVTVariable> ret = new HashMap<Integer,LVTVariable>();
-+      if (statement == null) return ret;
-+      StartEndPair sepair = statement.getStartEndRange();
+     Map<Integer, LVTVariable> ret = new HashMap<Integer, LVTVariable>();
++    if (statement == null) {
++      return ret;
++    }
++    StartEndPair sepair = statement.getStartEndRange();
      if (endpoints.containsKey(sepair)) {
-         for (LVTVariable lvt : endpoints.get(sepair)) {
-             ret.put(lvt.index,lvt);
+-        for (LVTVariable lvt : endpoints.get(sepair)) {
+-            ret.put(lvt.index,lvt);
+-        }
++      for (LVTVariable lvt : endpoints.get(sepair)) {
++        ret.put(lvt.index, lvt);
++      }
+     }
+-//    for (Entry<Integer, List<LVTVariable>> entry : endpoints.get(end)) {
+-//      for (LVTVariable lvt : entry.getValue()) {
+-//        if (lvt.start >= start && lvt.end <= end) {
+-//          if (ret.containsKey(entry.getKey())) {
+-//            System.out.println("DUPLICATE INDEX WHAT THE FUCK: " + entry.getKey());
+-//          }
+-//          ret.put(entry.getKey(), lvt);
+-//        }
+-//      }
+-//    }
+     return ret;
+   }
+ }
+\ No newline at end of file
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/StartEndPair.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/StartEndPair.java
 index 23a3929a12446772fb3e35196223925853b28ec3..32c87996ea629302559202e7cd39c9e345a67398 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/StartEndPair.java

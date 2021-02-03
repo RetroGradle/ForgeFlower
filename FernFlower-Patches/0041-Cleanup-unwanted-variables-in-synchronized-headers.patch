@@ -168,10 +168,10 @@ index 0000000000000000000000000000000000000000..371fc5aafff4dd8f7dc86bc476e97f8e
 +  }
 +}
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 560328a405e5860dba08daf85f0e957a21fc91d1..e294648ca0e77864f3827b94bd6846440b139a30 100644
+index 1f09fc657c217be18104ba40e49558c6db36a51f..fb2e3a6a7804b44dd444dfb241a16ea651f680d1 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-@@ -635,6 +635,12 @@ public class VarDefinitionHelper {
+@@ -638,6 +638,12 @@ public class VarDefinitionHelper {
                  leaked.putAll(leaked_n); //First is outside the scope so leak!
                }
              }

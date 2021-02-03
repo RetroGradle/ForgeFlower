@@ -57,7 +57,7 @@ index d93bad6bd760a6de8e546411b1f2798b4bbd03ad..db70f64a91a21c04b1277b6da9b38ef7
        @Override
        public int processExprent(Exprent exprent) {
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java b/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
-index 312f6c8a51e96e8f1a8dc27b509716022e22cc39..3398924fabb57daddb0f6b51daafdd266cc371b6 100644
+index 43f29f5320b158feb567b4327e3487c1ea3748e9..0fc40559457cfc425bced3a536b862a963a466e5 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
 @@ -416,6 +416,11 @@ public class ConstExprent extends Exprent {

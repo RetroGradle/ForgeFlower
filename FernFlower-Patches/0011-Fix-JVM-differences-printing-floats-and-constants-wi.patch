@@ -1,14 +1,36 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lex Manos <LexManos@gmail.com>
 Date: Mon, 3 Aug 2015 15:43:39 -0700
-Subject: [PATCH] Fix JVM differences printing floats with an undefined number
- of trailing zeros. (Some JVMs do 0.1F and some do 0.10F)
+Subject: [PATCH] Fix JVM differences printing floats and constants with an
+ undefined number of trailing zeros
 
+(For floats, some JVMs do 0.1F and some do 0.10F)
 
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java b/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
-index 4b9b687382d96886a1a954e0fa179211843d45a8..5a751f91d28558268fc18f6f4630338c1e751f9b 100644
+index 4b9b687382d96886a1a954e0fa179211843d45a8..627a4c081bdd39dc0fd3f8607809d8fe679b65fd 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
+@@ -182,16 +182,16 @@ public class ConstExprent extends Exprent {
+           String doublefield;
+           if (literal) {
+             if (Double.isNaN(dval)) {
+-              return new TextBuffer("0.0D / 0.0");
++              return new TextBuffer("0.0D / 0.0D");
+             }
+             else if (dval == Double.POSITIVE_INFINITY) {
+-              return new TextBuffer("1.0D / 0.0");
++              return new TextBuffer("1.0D / 0.0D");
+             }
+             else if (dval == Double.NEGATIVE_INFINITY) {
+-              return new TextBuffer("-1.0D / 0.0");
++              return new TextBuffer("-1.0D / 0.0D");
+             }
+             else {
+-              return new TextBuffer(value.toString()).append("D");
++              return new TextBuffer(trimZeros(value.toString())).append("D");
+             }
+           }
+           else if (Double.isNaN(dval)) {
 @@ -210,7 +210,7 @@ public class ConstExprent extends Exprent {
              doublefield = "MIN_VALUE";
            }
@@ -18,6 +40,27 @@ index 4b9b687382d96886a1a954e0fa179211843d45a8..5a751f91d28558268fc18f6f4630338c
            }
            return new FieldExprent(doublefield, "java/lang/Double", true, null, FieldDescriptor.DOUBLE_DESCRIPTOR, bytecode).toJava(0, tracer);
          case CodeConstants.TYPE_FLOAT:
+@@ -219,16 +219,16 @@ public class ConstExprent extends Exprent {
+           String floatfield;
+           if (literal) {
+             if (Double.isNaN(fval)) {
+-              return new TextBuffer("0.0F / 0.0");
++              return new TextBuffer("0.0F / 0.0F");
+             }
+             else if (fval == Double.POSITIVE_INFINITY) {
+-              return new TextBuffer("1.0F / 0.0");
++              return new TextBuffer("1.0F / 0.0F");
+             }
+             else if (fval == Double.NEGATIVE_INFINITY) {
+-              return new TextBuffer("-1.0F / 0.0");
++              return new TextBuffer("-1.0F / 0.0F");
+             }
+             else {
+-              return new TextBuffer(value.toString()).append("F");
++              return new TextBuffer(trimZeros(value.toString())).append("F");
+             }
+           }
+           else if (Float.isNaN(fval)) {
 @@ -247,7 +247,7 @@ public class ConstExprent extends Exprent {
              floatfield = "MIN_VALUE";
            }

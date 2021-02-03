@@ -6,7 +6,7 @@ Subject: [PATCH] Fixed var merging not propogating type data to var
 
 
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index aee11f60aab5e1f790a607e78675ba23f774fb47..520b951dd96e4cc70a1800af58aa7a9b43ac1d9f 100644
+index a86c7a49b5acaa69e58f1ef5cdae9677e46cda57..e026ca264313b3949dee800eca91db7ecac377ff 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -757,6 +757,18 @@ public class VarDefinitionHelper {

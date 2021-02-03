@@ -251,7 +251,7 @@ index 95ebdc5d1bd967c32eb4c7bd34e701de699afd1c..efc64b9d98005572eb9752e36d472f7a
    // getter and setter methods
    // *****************************************************************************
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java b/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
-index 5a751f91d28558268fc18f6f4630338c1e751f9b..312f6c8a51e96e8f1a8dc27b509716022e22cc39 100644
+index 627a4c081bdd39dc0fd3f8607809d8fe679b65fd..43f29f5320b158feb567b4327e3487c1ea3748e9 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/exps/ConstExprent.java
 @@ -48,15 +48,15 @@ public class ConstExprent extends Exprent {

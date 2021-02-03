@@ -26,7 +26,7 @@ index 3d5f03b67d07b54d305c16e1dce4d10a93c5b26d..05a4f79e80f9ac6023ff66996e3fda0e
    public String toString() {
      return lvt != null ? lvt.name :  "var_" + index + "_" + version;
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 6d8ab120af2261fa02eccfcced62fdcb5cec79ae..cc5e5e427125ab4673f9aef2a7b56de37f0ab113 100644
+index 8e7a6b5148226b0123fe7e3589bd090e8ac0c4d3..1f09fc657c217be18104ba40e49558c6db36a51f 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -133,7 +133,6 @@ public class VarDefinitionHelper {
@@ -117,7 +117,7 @@ index 6d8ab120af2261fa02eccfcced62fdcb5cec79ae..cc5e5e427125ab4673f9aef2a7b56de3
    private Statement findFirstBlock(Statement stat, Integer varindex) {
  
      LinkedList<Statement> stack = new LinkedList<Statement>();
-@@ -378,31 +424,99 @@ if (mt.getName().equals("func_180655_c")){
+@@ -378,31 +424,102 @@ if (mt.getName().equals("func_180655_c")){
      return false;
    }
  
@@ -125,10 +125,9 @@ index 6d8ab120af2261fa02eccfcced62fdcb5cec79ae..cc5e5e427125ab4673f9aef2a7b56de3
 -    if (stat == null || varproc.getLVT() == null) {
 +  private void propogateLVTs(Statement stat) {
 +    if (varproc.getLVT() == null) {
-       return;
-     }
- 
--    Map<Integer, LVTVariable> vars = varproc.getLVT().getVars(stat);
++      return;
++    }
++
 +    MethodDescriptor md = MethodDescriptor.parseDescriptor(mt.getDescriptor());
 +    Map<VarVersionPair, LVTVariable> types = new HashMap<VarVersionPair, LVTVariable>();
 +
@@ -138,7 +137,10 @@ index 6d8ab120af2261fa02eccfcced62fdcb5cec79ae..cc5e5e427125ab4673f9aef2a7b56de3
 +    }
 +
 +    for (VarType var : md.params) {
-+      types.put(new VarVersionPair(index, 0), varproc.getLVT().getCandidates(index).get(0));
++      List<LVTVariable> vars = varproc.getLVT().getCandidates(index);
++      if (vars != null) {
++        types.put(new VarVersionPair(index, 0), vars.get(0));
++      }
 +      index += var.stackSize;
 +    }
 +
@@ -149,30 +151,35 @@ index 6d8ab120af2261fa02eccfcced62fdcb5cec79ae..cc5e5e427125ab4673f9aef2a7b56de3
 +
 +  private void findTypes(Statement stat, Map<VarVersionPair, LVTVariable> types) {
 +    if (stat == null) {
-+      return;
-+    }
-+
+       return;
+     }
+ 
+-    Map<Integer, LVTVariable> vars = varproc.getLVT().getVars(stat);
 +    for (Exprent exp : stat.getVarDefinitions()) {
 +      findTypes(exp, types);
 +    }
-+
-+    if (stat.getExprents() == null) {
-+      for (Object obj : stat.getSequentialObjects()) {
-+        if (obj instanceof Statement) {
+ 
+     if (stat.getExprents() == null) {
+       for (Object obj : stat.getSequentialObjects()) {
+         if (obj instanceof Statement) {
+-          setupLVTs((Statement)obj);
 +          findTypes((Statement)obj, types);
-+        }
-+        else if (obj instanceof Exprent) {
+         }
+         else if (obj instanceof Exprent) {
+-          setupLVTs((Exprent)obj, vars);
 +          findTypes((Exprent)obj, types);
-+        }
-+      }
-+    }
-+    else {
-+      for (Exprent exp : stat.getExprents()) {
+         }
+       }
+     }
+     else {
+       for (Exprent exp : stat.getExprents()) {
+-        setupLVTs(exp, vars);
 +        findTypes(exp, types);
-+      }
-+    }
-+  }
-+
+       }
+     }
+   }
+ 
+-  private void setupLVTs(Exprent exprent, Map<Integer, LVTVariable> lvts) {
 +  private void findTypes(Exprent exp, Map<VarVersionPair, LVTVariable> types) {
 +    VarExprent var = null;
 +
@@ -198,33 +205,29 @@ index 6d8ab120af2261fa02eccfcced62fdcb5cec79ae..cc5e5e427125ab4673f9aef2a7b56de3
 +    if (stat == null || types.size() == 0) {
 +      return;
 +    }
- 
-     if (stat.getExprents() == null) {
-       for (Object obj : stat.getSequentialObjects()) {
-         if (obj instanceof Statement) {
--          setupLVTs((Statement)obj);
++
++    if (stat.getExprents() == null) {
++      for (Object obj : stat.getSequentialObjects()) {
++        if (obj instanceof Statement) {
 +          applyTypes((Statement)obj, types);
-         }
-         else if (obj instanceof Exprent) {
--          setupLVTs((Exprent)obj, vars);
++        }
++        else if (obj instanceof Exprent) {
 +          applyTypes((Exprent)obj, types);
-         }
-       }
-     }
-     else {
-       for (Exprent exp : stat.getExprents()) {
--        setupLVTs(exp, vars);
++        }
++      }
++    }
++    else {
++      for (Exprent exp : stat.getExprents()) {
 +        applyTypes(exp, types);
-       }
-     }
-   }
- 
--  private void setupLVTs(Exprent exprent, Map<Integer, LVTVariable> lvts) {
++      }
++    }
++  }
++
 +  private void applyTypes(Exprent exprent, Map<VarVersionPair, LVTVariable> types) {
      if (exprent == null) {
        return;
      }
-@@ -412,12 +526,12 @@ if (mt.getName().equals("func_180655_c")){
+@@ -412,12 +529,12 @@ if (mt.getName().equals("func_180655_c")){
      for (Exprent expr : lst) {
        if (expr.type == Exprent.EXPRENT_VAR) {
          VarExprent var = (VarExprent)expr;
@@ -240,7 +243,7 @@ index 6d8ab120af2261fa02eccfcced62fdcb5cec79ae..cc5e5e427125ab4673f9aef2a7b56de3
          }
        }
      }
-@@ -439,19 +553,20 @@ if (mt.getName().equals("func_180655_c")){
+@@ -439,19 +556,20 @@ if (mt.getName().equals("func_180655_c")){
  
      Map<VarVersionPair, VarVersionPair> blacklist = new HashMap<VarVersionPair, VarVersionPair>();
      VPPEntry remap = mergeVars(stat, parent, new HashMap<Integer, VarVersionPair>(), blacklist);

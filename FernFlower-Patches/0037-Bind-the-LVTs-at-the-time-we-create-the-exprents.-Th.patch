@@ -41,10 +41,10 @@ index 0425fbc336f5318514d09849e9910171aa46d8f9..7b94e5b4af7a6618e46f078bcec596e9
              instr.getOperand(1) < 0 ? FunctionExprent.FUNCTION_SUB : FunctionExprent.FUNCTION_ADD, Arrays
              .asList(vevar.copy(), new ConstExprent(VarType.VARTYPE_INT, Math.abs(instr.getOperand(1)), null)),
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LocalVariableTable.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LocalVariableTable.java
-index fe45b111874c303e7a0e839e1ef358131bc320a2..4193f563d90c2fdfee692cf272fb3d3886f72e5b 100644
+index 7f3447bcf43c09321eeb34e8e62185bb6a38a261..729a3d2129c0d6765ad7b415bd4bee6cc40a09d2 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LocalVariableTable.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LocalVariableTable.java
-@@ -41,11 +41,7 @@ public class LocalVariableTable {
+@@ -37,11 +37,7 @@ public class LocalVariableTable {
      mapLVT = null; // Invalidate the cache and rebuild it.
    }
  
@@ -57,7 +57,7 @@ index fe45b111874c303e7a0e839e1ef358131bc320a2..4193f563d90c2fdfee692cf272fb3d38
      //System.out.println(indent + stat.getClass().getSimpleName() + " (" + start +", " + end + ")");
  
      Map<Integer, List<LVTVariable>> map = getMapVarNames();
-@@ -53,7 +49,7 @@ public class LocalVariableTable {
+@@ -49,7 +45,7 @@ public class LocalVariableTable {
        return null;
      }
      for (LVTVariable lvt : map.get(index)) {
@@ -67,7 +67,7 @@ index fe45b111874c303e7a0e839e1ef358131bc320a2..4193f563d90c2fdfee692cf272fb3d38
        }
      }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 9ecb28bffa6dc6159370823066d8f189a3f1a83b..6d8ab120af2261fa02eccfcced62fdcb5cec79ae 100644
+index 5cb5f90885d6c1c748aaa4be4082b6690061f949..8e7a6b5148226b0123fe7e3589bd090e8ac0c4d3 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -133,7 +133,7 @@ public class VarDefinitionHelper {

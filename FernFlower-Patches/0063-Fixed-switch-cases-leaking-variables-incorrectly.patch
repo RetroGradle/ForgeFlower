@@ -5,7 +5,7 @@ Subject: [PATCH] Fixed switch cases leaking variables incorrectly.
 
 
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 520b951dd96e4cc70a1800af58aa7a9b43ac1d9f..726edd7aeab41647414952e0a0a6c8cb52674816 100644
+index e026ca264313b3949dee800eca91db7ecac377ff..dd805eb485cbd6934c72218bb7a38471c9e4c122 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -648,6 +648,9 @@ public class VarDefinitionHelper {

@@ -4,34 +4,8 @@ Date: Wed, 16 Sep 2015 00:49:12 -0400
 Subject: [PATCH] Use top down manual scoping for merging variables.
 
 
-diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/BasicBlockStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/BasicBlockStatement.java
-index 762fd011314ca3f5c7fdc370ffe2bccdbb01a509..ea7e6110cf1e5eeb4d3f13d98527d53e85dd60fe 100644
---- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/BasicBlockStatement.java
-+++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/BasicBlockStatement.java
-@@ -24,6 +24,7 @@ import org.jetbrains.java.decompiler.main.TextBuffer;
- import org.jetbrains.java.decompiler.main.collectors.BytecodeMappingTracer;
- import org.jetbrains.java.decompiler.main.collectors.CounterContainer;
- import org.jetbrains.java.decompiler.modules.decompiler.ExprProcessor;
-+import org.jetbrains.java.decompiler.modules.decompiler.vars.StartEndPair;
- 
- public class BasicBlockStatement extends Statement {
- 
-@@ -94,4 +95,13 @@ public class BasicBlockStatement extends Statement {
-   public BasicBlock getBlock() {
-     return block;
-   }
-+
-+  @Override
-+    public StartEndPair getStartEndRange() {
-+      if (block.size() > 0) {
-+          return new StartEndPair(block.getStartInstruction(),block.getEndInstruction());
-+    } else {
-+        return null;
-+    }
-+  }
- }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 7abcec8a356fa92f2bc18bf2dc24fc3defac3a38..9ecb28bffa6dc6159370823066d8f189a3f1a83b 100644
+index 7abcec8a356fa92f2bc18bf2dc24fc3defac3a38..5cb5f90885d6c1c748aaa4be4082b6690061f949 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -19,13 +19,13 @@ import org.jetbrains.java.decompiler.code.CodeConstants;
@@ -159,7 +133,7 @@ index 7abcec8a356fa92f2bc18bf2dc24fc3defac3a38..9ecb28bffa6dc6159370823066d8f189
            return true;
          }
        }
-@@ -430,105 +423,302 @@ public class VarDefinitionHelper {
+@@ -430,105 +423,305 @@ public class VarDefinitionHelper {
      }
    }
  
@@ -270,6 +244,9 @@ index 7abcec8a356fa92f2bc18bf2dc24fc3defac3a38..9ecb28bffa6dc6159370823066d8f189
 +                leaked_n.clear(); // Force no leaking at the end of if blocks
 +                // We may need to do this for Switches as well.. But havent run into that issue yet...
 +              }
++              else if (obj == ifst.getFirst()) {
++                leaked.putAll(leaked_n); //First is outside the scope so leak!
++              }
 +            }
 +            this_vars.putAll(leaked_n);
 +          }
@@ -313,11 +290,15 @@ index 7abcec8a356fa92f2bc18bf2dc24fc3defac3a38..9ecb28bffa6dc6159370823066d8f189
 +    }
 +    else if (exp.type == Exprent.EXPRENT_VAR) {
 +      var = (VarExprent)exp;
++    }
++
++    if (var == null) {
++      return null;
      }
  
 -    VarExprent left = (VarExprent)exp.getLeft();
 -    int index = varproc.getRemapped(left.getIndex());
-+    if (var == null) {
++    if (!var.isDefinition()) {
 +      return null;
 +    }
  
@@ -330,10 +311,6 @@ index 7abcec8a356fa92f2bc18bf2dc24fc3defac3a38..9ecb28bffa6dc6159370823066d8f189
 -          }
 -          return;
 -        }
-+    if (!var.isDefinition()) {
-+      return null;
-+    }
-+
 +    int index = varproc.getRemapped(var.getIndex());
 +    VarVersionPair new_ = this_vars.get(index);
 +    if (new_ != null) {

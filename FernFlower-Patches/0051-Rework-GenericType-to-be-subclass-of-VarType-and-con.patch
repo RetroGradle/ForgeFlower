@@ -756,7 +756,7 @@ index 7ef93995cb08d8bc8f88603c16907740a6b09b57..5c2ff051baebf27af879a6e01a4bd855
 +  public final List<VarType> exceptions = new ArrayList<VarType>();
  }
 diff --git a/src/org/jetbrains/java/decompiler/struct/gen/generics/GenericType.java b/src/org/jetbrains/java/decompiler/struct/gen/generics/GenericType.java
-index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..aeb786a7b26864424c5b730ef3f954b9bfb583be 100644
+index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..2ed5574e1638339c62ab849de86600c366d1ced9 100644
 --- a/src/org/jetbrains/java/decompiler/struct/gen/generics/GenericType.java
 +++ b/src/org/jetbrains/java/decompiler/struct/gen/generics/GenericType.java
 @@ -16,38 +16,43 @@
@@ -1002,7 +1002,7 @@ index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..aeb786a7b26864424c5b730ef3f954b9
 +      clsName = DecompilerContext.getImportCollector().getShortName(value.replace('/', '.'));
 +    }
 +    else if (parent.isGeneric()) {
-+      clsName = ((GenericType)parent).getCastName() + "." + value.substring(value.lastIndexOf('.') + 1);
++      clsName = ((GenericType)parent).getCastName() + "." + value.substring(parent.value.length() + 1);
 +    }
 +    else {
 +      clsName = DecompilerContext.getImportCollector().getShortName(parent.value.replace('/', '.')) + "." + value.substring(value.lastIndexOf('.') + 1);

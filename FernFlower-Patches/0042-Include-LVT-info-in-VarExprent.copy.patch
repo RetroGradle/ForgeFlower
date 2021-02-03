@@ -17,7 +17,7 @@ index 933b0467478a4315a6d8dbdb7ae067f57046a8bc..c85d889d96073327a5ea08a9d986621d
    }
  
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index e294648ca0e77864f3827b94bd6846440b139a30..88dae4d81ca4ebc059cc575cf5e97d9f5bfe0fee 100644
+index fb2e3a6a7804b44dd444dfb241a16ea651f680d1..ace64fd51d0888771fd18ac975cc765a4151e00f 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -260,22 +260,18 @@ public class VarDefinitionHelper {

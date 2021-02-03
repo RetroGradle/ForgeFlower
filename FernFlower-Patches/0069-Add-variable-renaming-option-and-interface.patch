@@ -298,7 +298,7 @@ index cb376d9b480f06971c71647037a17a166764e805..16f2bfb5fbc04312c21d10d26441786a
  }
 \ No newline at end of file
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 164ddb5639ed92ae8bcab25a62713211d2e904fe..fcd8c64de9c7d3af4e9ce943c41dd58ced598014 100644
+index 27df40907793bd991099dbc627c22365f914875c..1c51e101667113131851f91c96f5a64c5d1a22ba 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -16,13 +16,16 @@

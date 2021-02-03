@@ -163,10 +163,10 @@ index 209d3e081f58e2d54b231dbe2c90fe11c319f66c..cb376d9b480f06971c71647037a17a16
  }
 \ No newline at end of file
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 88dae4d81ca4ebc059cc575cf5e97d9f5bfe0fee..0427e3b329d4599d42ef5f8ac35fd84581c5f8c6 100644
+index ace64fd51d0888771fd18ac975cc765a4151e00f..a86c7a49b5acaa69e58f1ef5cdae9677e46cda57 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-@@ -440,6 +440,10 @@ public class VarDefinitionHelper {
+@@ -443,6 +443,10 @@ public class VarDefinitionHelper {
  
      findTypes(stat, types);
  
@@ -177,7 +177,7 @@ index 88dae4d81ca4ebc059cc575cf5e97d9f5bfe0fee..0427e3b329d4599d42ef5f8ac35fd845
      applyTypes(stat, types);
    }
  
-@@ -470,23 +474,24 @@ public class VarDefinitionHelper {
+@@ -473,23 +477,24 @@ public class VarDefinitionHelper {
    }
  
    private void findTypes(Exprent exp, Map<VarVersionPair, LVTVariable> types) {
@@ -216,7 +216,7 @@ index 88dae4d81ca4ebc059cc575cf5e97d9f5bfe0fee..0427e3b329d4599d42ef5f8ac35fd845
    }
  
  
-@@ -495,6 +500,10 @@ public class VarDefinitionHelper {
+@@ -498,6 +503,10 @@ public class VarDefinitionHelper {
        return;
      }
  
@@ -227,7 +227,7 @@ index 88dae4d81ca4ebc059cc575cf5e97d9f5bfe0fee..0427e3b329d4599d42ef5f8ac35fd845
      if (stat.getExprents() == null) {
        for (Object obj : stat.getSequentialObjects()) {
          if (obj instanceof Statement) {
-@@ -637,6 +646,10 @@ public class VarDefinitionHelper {
+@@ -640,6 +649,10 @@ public class VarDefinitionHelper {
                  leaked.putAll(leaked_n); //First is outside the scope so leak!
                }
              }
@@ -238,7 +238,7 @@ index 88dae4d81ca4ebc059cc575cf5e97d9f5bfe0fee..0427e3b329d4599d42ef5f8ac35fd845
              this_vars.putAll(leaked_n);
            }
          }
-@@ -732,6 +745,18 @@ public class VarDefinitionHelper {
+@@ -735,6 +748,18 @@ public class VarDefinitionHelper {
        }
        success |= remapped;
      }
