@@ -271,7 +271,7 @@ index 0f44e42c44c68b178fced0d0c362fe6a027b5a8a..c277392bd6bace5efee52426204b6eeb
  import org.jetbrains.java.decompiler.modules.decompiler.sforms.FlattenStatementsHelper;
  import org.jetbrains.java.decompiler.modules.decompiler.stats.RootStatement;
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-index e2e684b860ac156e55218000c92ab31f67edaaaa..90f2c6f55f74bb2398288bf23f4a822505c21ab5 100644
+index 3975d8cf93f8a2ce22b57ca3a666f3be77b5dcb4..9be9edbb36ecd3082cb15f5ff5a6ba8a627f3d89 100644
 --- a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 +++ b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 @@ -577,7 +577,6 @@ public class NestedClassProcessor {

@@ -6,7 +6,7 @@ Subject: [PATCH] Fixed issue where inner class fields would not be replaced by
 
 
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-index 1eaeaa6519574c4defe41c789743631fb6c6222f..e2e684b860ac156e55218000c92ab31f67edaaaa 100644
+index 1eaeaa6519574c4defe41c789743631fb6c6222f..3975d8cf93f8a2ce22b57ca3a666f3be77b5dcb4 100644
 --- a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 +++ b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 @@ -704,8 +704,8 @@ public class NestedClassProcessor {
@@ -51,7 +51,7 @@ index 1eaeaa6519574c4defe41c789743631fb6c6222f..e2e684b860ac156e55218000c92ab31f
            break;
          case Exprent.EXPRENT_NEW:
 -          VarType newType = expr.getExprType();
-+          VarType newType = ((NewExprent) expr).getNewType();
++          VarType newType = ((NewExprent)expr).getNewType();
            res = newType.type == CodeConstants.TYPE_OBJECT && classname.equals(newType.value);
            break;
          case Exprent.EXPRENT_VAR:
