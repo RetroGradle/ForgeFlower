@@ -31,7 +31,7 @@ index 9aedf22af1f60b3e17752769462aee91cd9daeb0..c6eda1b630480cdec964a3571fc44e1c
              public int processExprent(Exprent exprent) {
                List<Exprent> lst = exprent.getAllExprents(true);
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
-index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc452b77b510 100644
+index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..5ba4dcd0944696d200a8a5857d7afccc3737e5fb 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
 @@ -18,8 +18,13 @@ package org.jetbrains.java.decompiler.modules.decompiler;
@@ -101,7 +101,7 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
  
                // remove edges
                StatEdge ifedge = firstif.getIfEdge();
-@@ -361,22 +382,247 @@ public class MergeHelper {
+@@ -361,22 +382,320 @@ public class MergeHelper {
  
        stat.setLooptype(DoStatement.LOOP_FOR);
        if (hasinit) {
@@ -111,12 +111,12 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +          exp.addBytecodeOffsets(stat.getInitExprent().bytecode);
 +        }
 +        stat.setInitExprent(exp);
-       }
--      stat.setIncExprent(lastData.getExprents().remove(lastData.getExprents().size() - 1));
++      }
 +      Exprent exp = lastData.getExprents().remove(lastData.getExprents().size() - 1);
 +      if (stat.getIncExprent() != null) {
 +        exp.addBytecodeOffsets(stat.getIncExprent().bytecode);
-+      }
+       }
+-      stat.setIncExprent(lastData.getExprents().remove(lastData.getExprents().size() - 1));
 +      stat.setIncExprent(exp);
      }
  
@@ -162,7 +162,8 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +          }
 +          break;
 +        }
-+      }
+       }
+-      removeLastEmptyStatement(stat, lastData);
 +      else {
 +        break;
 +      }
@@ -171,8 +172,8 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +    firstData = getFirstDirectData(stat.getFirst());
 +    if (firstData != null && firstData.getExprents().get(0).type == Exprent.EXPRENT_ASSIGNMENT) {
 +      firstDoExprent = (AssignmentExprent)firstData.getExprents().get(0);
-+    }
-+
+     }
+ 
 +    if (stat.getLooptype() == DoStatement.LOOP_WHILE && initDoExprent != null && firstDoExprent != null) {
 +      if (initDoExprent.type == Exprent.EXPRENT_ASSIGNMENT &&
 +          isIteratorCall(((AssignmentExprent)initDoExprent).getRight())) {
@@ -184,6 +185,14 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +
 +        AssignmentExprent ass = (AssignmentExprent)firstDoExprent;
 +        if (!isNextCall(ass.getRight()) || ass.getLeft().type != Exprent.EXPRENT_VAR) {
++          return false;
++        }
++
++        InvocationExprent next = (InvocationExprent)getUncast(ass.getRight());
++        InvocationExprent hnext = (InvocationExprent)getUncast(drillNots(stat.getConditionExprent()));
++        if (next.getInstance().type != Exprent.EXPRENT_VAR ||
++            hnext.getInstance().type != Exprent.EXPRENT_VAR ||
++            isVarReferenced((VarExprent)initDoExprent.getLeft(), stat, (VarExprent)next.getInstance(), (VarExprent)hnext.getInstance())) {
 +          return false;
 +        }
 +
@@ -216,11 +225,23 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +          return false;
 +        }
 +
++        AssignmentExprent itr = (AssignmentExprent)stat.getInitExprent();
++        InvocationExprent hnext = (InvocationExprent)exp;
++        if (itr.getLeft().type != Exprent.EXPRENT_VAR || hnext.getInstance().type != Exprent.EXPRENT_VAR) {
++          return false;
++        }
++
 +        AssignmentExprent ass = (AssignmentExprent)stat.getIncExprent();
 +        if (!isNextCall(ass.getRight()) || ass.getLeft().type != Exprent.EXPRENT_VAR) {
 +
 +          if (firstDoExprent == null || !isNextCall(firstDoExprent.getRight()) ||
 +              firstDoExprent.getLeft().type != Exprent.EXPRENT_VAR) {
++            return false;
++          }
++
++          InvocationExprent next = (InvocationExprent)getUncast(firstDoExprent.getRight());
++          if (next.getInstance().type != Exprent.EXPRENT_VAR ||
++              isVarReferenced((VarExprent)itr.getLeft(), stat, (VarExprent)next.getInstance(), (VarExprent)hnext.getInstance())) {
 +            return false;
 +          }
 +
@@ -240,6 +261,12 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +          stat.setIncExprent(holder.getInstance());
 +        }
 +        else {
++          InvocationExprent next = (InvocationExprent)getUncast(ass.getRight());
++          if (next.getInstance().type != Exprent.EXPRENT_VAR ||
++              isVarReferenced((VarExprent)itr.getLeft(), stat, (VarExprent)next.getInstance(), (VarExprent)hnext.getInstance())) {
++            return false;
++          }
++
 +          InvocationExprent holder = (InvocationExprent)getUncast(((AssignmentExprent)stat.getInitExprent()).getRight());
 +
 +          holder.getInstance().addBytecodeOffsets(stat.getInitExprent().bytecode);
@@ -300,15 +327,61 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +            stat.setIncExprent(initCopyExprent.getRight());
 +          }
 +        }
-       }
--      removeLastEmptyStatement(stat, lastData);
-     }
- 
++      }
++    }
++
 +    //cleanEmptyStatements(stat, firstData); //TODO: Look into this and see what it does...
 +
      return true;
    }
  
++  private static boolean isVarReferenced(VarExprent var, Statement stat, VarExprent... whitelist) {
++    if (stat.getExprents() == null) {
++      for (Object obj : stat.getSequentialObjects()) {
++        if (obj instanceof Statement) {
++          if (isVarReferenced(var, (Statement)obj, whitelist)) {
++            return true;
++          }
++        }
++        else if (obj instanceof Exprent) {
++          if (isVarReferenced(var, (Exprent)obj, whitelist)) {
++            return true;
++          }
++        }
++      }
++    }
++    else {
++      for (Exprent exp : stat.getExprents()) {
++        if (isVarReferenced(var, exp, whitelist)) {
++          return true;
++        }
++      }
++    }
++    return false;
++  }
++
++  private static boolean isVarReferenced(VarExprent target, Exprent exp, VarExprent... whitelist) {
++    List<Exprent> lst = exp.getAllExprents(true);
++    lst.add(exp);
++    for (Exprent ex : lst) {
++      if (ex != target && ex.type == Exprent.EXPRENT_VAR) {
++        VarExprent var = (VarExprent)ex;
++        if (var.getIndex() == target.getIndex() && var.getVersion() == target.getVersion()) {
++          boolean allowed = false;
++          for (VarExprent white : whitelist) {
++            if (var == white) {
++              allowed = true;
++            }
++          }
++          if (!allowed) {
++            return true;
++          }
++        }
++      }
++    }
++    return false;
++  }
++
 +  private static boolean isType(Exprent exp, int type) { //This is just a helper macro, Wish java had real macros.
 +    return exp != null && exp.type == type;
 +  }
@@ -356,7 +429,7 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
    private static void removeLastEmptyStatement(DoStatement dostat, Statement stat) {
  
      if (stat == dostat.getFirst()) {
-@@ -407,15 +653,52 @@ public class MergeHelper {
+@@ -407,15 +726,52 @@ public class MergeHelper {
        return stat;
      }
  
@@ -373,10 +446,10 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +      if (tmp == null || !tmp.getExprents().isEmpty()) {
 +        return tmp;
 +      }
-     }
++    }
 +
-     return null;
-   }
++    return null;
++  }
 +
 +  private static Statement getFirstDirectData(Statement stat) {
 +    if (stat.getExprents() != null && !stat.getExprents().isEmpty()) {
@@ -388,9 +461,9 @@ index 71d3d7991287bcfc163fb0a5229e8f2595a20dc3..3172b5e6754fc9e2d5570f1d7110dc45
 +      if (ret != null) {
 +        return ret;
 +      }
-+    }
-+    return null;
-+  }
+     }
+     return null;
+   }
 +
 +  private static Exprent getUncast(Exprent exp) {
 +    if (exp.type == Exprent.EXPRENT_FUNCTION) {
@@ -572,7 +645,7 @@ index 95cefcfeef4cbbd2c6e863ae31efd74ee48cd724..9ba8195cd90a7d7c78fca7fa28cf7370
      for (DirectNode node : dgraph.nodes) {
  
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
-index ef5ea764d6e5d7d6372c21593613ba2b1f98d108..8359284281d3c3e02c15ed407ab4dfacf9eae478 100644
+index ef5ea764d6e5d7d6372c21593613ba2b1f98d108..e7220368e6116aec755c46f25e397bf6f8f76443 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
 @@ -19,6 +19,7 @@ import org.jetbrains.java.decompiler.main.TextBuffer;
@@ -605,13 +678,14 @@ index ef5ea764d6e5d7d6372c21593613ba2b1f98d108..8359284281d3c3e02c15ed407ab4dfac
      }
  
      return buf;
-@@ -151,6 +160,9 @@ public class DoStatement extends Statement {
+@@ -151,6 +160,10 @@ public class DoStatement extends Statement {
          }
        case LOOP_WHILE:
          lst.add(getConditionExprent());
 +        break;
 +      case LOOP_FOREACH:
 +        lst.add(getInitExprent());
++        lst.add(getIncExprent());
      }
  
      lst.add(first);

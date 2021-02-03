@@ -1,23 +1,35 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: cpw <cpw@weeksfamily.ca>
 Date: Fri, 6 Nov 2015 01:36:47 -0500
-Subject: [PATCH] Renaming thinger
+Subject: [PATCH] Add variable renaming option and interface
 
+"jvn" argument enables JAD-style variable naming (int i, j, k etc).
+Can pass a "RENAMER_FACTORY" to the decompiler context: this is the
+name of a class implementing IVariableNamingFactory, that will be
+loaded and instantiated, overriding other variable naming options.
 
 diff --git a/src/org/jetbrains/java/decompiler/main/ClassWriter.java b/src/org/jetbrains/java/decompiler/main/ClassWriter.java
-index 808c5e1bb2c32a5f85eaac548040522697e60fc8..c515d2e60e0917d2588a359c1d52a5345e8747ca 100644
+index 808c5e1bb2c32a5f85eaac548040522697e60fc8..b90f2ec58cc54cdd9b72257824ec6ceaefbc536e 100644
 --- a/src/org/jetbrains/java/decompiler/main/ClassWriter.java
 +++ b/src/org/jetbrains/java/decompiler/main/ClassWriter.java
-@@ -732,7 +732,7 @@ public class ClassWriter {
+@@ -18,7 +18,6 @@ package org.jetbrains.java.decompiler.main;
+ import org.jetbrains.java.decompiler.code.CodeConstants;
+ import org.jetbrains.java.decompiler.main.ClassesProcessor.ClassNode;
+ import org.jetbrains.java.decompiler.main.collectors.BytecodeMappingTracer;
+-import org.jetbrains.java.decompiler.main.extern.IAbstractParameterRenamer;
+ import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
+ import org.jetbrains.java.decompiler.main.extern.IFernflowerPreferences;
+ import org.jetbrains.java.decompiler.main.rels.ClassWrapper;
+@@ -732,7 +731,7 @@ public class ClassWriter {
              buffer.append(' ');
              String parameterName = methodWrapper.varproc.getVarName(new VarVersionPair(index, 0));
              if ((flags & (CodeConstants.ACC_ABSTRACT | CodeConstants.ACC_NATIVE)) != 0) {
 -                parameterName = renameParameterIfPossible(parameterName, index, methodWrapper, flags);
-+                parameterName = methodWrapper.methodStruct.renamer.renameAbstractParameter(parameterName);
++                parameterName = methodWrapper.methodStruct.getRenamer().renameAbstractParameter(parameterName, index);
              }
              buffer.append(parameterName == null ? "param" + index : parameterName); // null iff decompiled with errors
  
-@@ -839,13 +839,7 @@ public class ClassWriter {
+@@ -839,13 +838,7 @@ public class ClassWriter {
      return !hideMethod;
    }
  
@@ -32,8 +44,30 @@ index 808c5e1bb2c32a5f85eaac548040522697e60fc8..c515d2e60e0917d2588a359c1d52a534
      // build line start offsets map
      HashMap<Integer, Set<Integer>> lineStartOffsets = new HashMap<Integer, Set<Integer>>();
      for (Map.Entry<Integer, Integer> entry : tracer.getMapping().entrySet()) {
+diff --git a/src/org/jetbrains/java/decompiler/main/ClassesProcessor.java b/src/org/jetbrains/java/decompiler/main/ClassesProcessor.java
+index 00600213ac4a4a39de72131a9cc6dc22424dc7a0..e0fdaacc5d6f16c5eea148540b2c90758779deae 100644
+--- a/src/org/jetbrains/java/decompiler/main/ClassesProcessor.java
++++ b/src/org/jetbrains/java/decompiler/main/ClassesProcessor.java
+@@ -24,6 +24,7 @@ import org.jetbrains.java.decompiler.main.extern.IFernflowerPreferences;
+ import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
+ import org.jetbrains.java.decompiler.main.rels.ClassWrapper;
+ import org.jetbrains.java.decompiler.main.rels.LambdaProcessor;
++import org.jetbrains.java.decompiler.main.rels.MethodWrapper;
+ import org.jetbrains.java.decompiler.main.rels.NestedClassProcessor;
+ import org.jetbrains.java.decompiler.main.rels.NestedMemberAccess;
+ import org.jetbrains.java.decompiler.modules.decompiler.exps.InvocationExprent;
+@@ -353,6 +354,9 @@ public class ClassesProcessor {
+ 
+     node.wrapper = null;
+     node.classStruct.releaseResources();
++    for (StructMethod m : node.classStruct.getMethods()) {
++        m.unloadRenamer();
++    }
+ 
+     for (ClassNode nd : node.nested) {
+       destroyWrappers(nd);
 diff --git a/src/org/jetbrains/java/decompiler/main/DecompilerContext.java b/src/org/jetbrains/java/decompiler/main/DecompilerContext.java
-index 15c6e406640315e5fbe82d48006b1a15f97020c8..8d4d403773a861191083e2b2f6e469ec9ace45f2 100644
+index 15c6e406640315e5fbe82d48006b1a15f97020c8..f946bb46ab04b018786a72371af431d42f65cf1c 100644
 --- a/src/org/jetbrains/java/decompiler/main/DecompilerContext.java
 +++ b/src/org/jetbrains/java/decompiler/main/DecompilerContext.java
 @@ -21,8 +21,10 @@ import org.jetbrains.java.decompiler.main.collectors.ImportCollector;
@@ -55,7 +89,7 @@ index 15c6e406640315e5fbe82d48006b1a15f97020c8..8d4d403773a861191083e2b2f6e469ec
  
    private static final ThreadLocal<DecompilerContext> currentContext = new ThreadLocal<DecompilerContext>();
  
-@@ -48,6 +51,7 @@ public class DecompilerContext {
+@@ -48,17 +51,34 @@ public class DecompilerContext {
    private PoolInterceptor poolInterceptor;
    private IFernflowerLogger logger;
    private BytecodeSourceMapper bytecodeSourceMapper;
@@ -63,25 +97,35 @@ index 15c6e406640315e5fbe82d48006b1a15f97020c8..8d4d403773a861191083e2b2f6e469ec
  
    private DecompilerContext(Map<String, Object> properties) {
      this.properties = properties;
-@@ -59,6 +63,17 @@ public class DecompilerContext {
+   }
+ 
+-  public static void initContext(Map<String, Object> propertiesCustom) {
++  public static void initContext(Map<String, Object> propertiesCustom, IFernflowerLogger logger) {
+     Map<String, Object> properties = new HashMap<String, Object>(IFernflowerPreferences.DEFAULTS);
+     if (propertiesCustom != null) {
        properties.putAll(propertiesCustom);
      }
      currentContext.set(new DecompilerContext(properties));
++    setLogger(logger);
 +    // Default a no-op renamer factory if none is provided
 +    if (DecompilerContext.getProperty(RENAMER_FACTORY) != null) {
 +      try {
 +        currentContext.get().renamerFactory = Class.forName((String) DecompilerContext.getProperty(RENAMER_FACTORY)).asSubclass(IVariableNamingFactory.class).newInstance();
 +      } catch (Exception e) {
-+
++        getLogger().writeMessage("Error loading renamer factory class", e);
 +      }
 +    }
 +    if (DecompilerContext.getNamingFactory() == null) {
-+      currentContext.get().renamerFactory = new JADNameProvider.JADNameProviderFactory();
++      if (DecompilerContext.getOption(IFernflowerPreferences.USE_JAD_VARNAMING)) {
++        currentContext.get().renamerFactory = new JADNameProvider.JADNameProviderFactory();
++      } else {
++        currentContext.get().renamerFactory = new IdentityRenamerFactory();
++      }
 +    }
    }
  
    public static DecompilerContext getCurrentContext() {
-@@ -141,6 +156,10 @@ public class DecompilerContext {
+@@ -141,6 +161,10 @@ public class DecompilerContext {
      return getCurrentContext().logger;
    }
  
@@ -93,7 +137,7 @@ index 15c6e406640315e5fbe82d48006b1a15f97020c8..8d4d403773a861191083e2b2f6e469ec
      if (logger != null) {
        String level = (String)getProperty(IFernflowerPreferences.LOG_LEVEL);
 diff --git a/src/org/jetbrains/java/decompiler/main/Fernflower.java b/src/org/jetbrains/java/decompiler/main/Fernflower.java
-index 6afe975fe2034ad25b7810a0bdc59ebcff8453e1..91e70d3132095281338593d2166eedbcbd09e5d6 100644
+index 6afe975fe2034ad25b7810a0bdc59ebcff8453e1..320e250ce1fe0eeca0194b296a3944cc710127bc 100644
 --- a/src/org/jetbrains/java/decompiler/main/Fernflower.java
 +++ b/src/org/jetbrains/java/decompiler/main/Fernflower.java
 @@ -27,6 +27,7 @@ import org.jetbrains.java.decompiler.struct.IDecompiledData;
@@ -104,9 +148,20 @@ index 6afe975fe2034ad25b7810a0bdc59ebcff8453e1..91e70d3132095281338593d2166eedbc
  
  import java.io.File;
  import java.util.HashSet;
+@@ -40,9 +41,8 @@ public class Fernflower implements IDecompiledData {
+ 
+   public Fernflower(IBytecodeProvider provider, IResultSaver saver, Map<String, Object> options, IFernflowerLogger logger) {
+     structContext = new StructContext(saver, this, new LazyLoader(provider));
+-    DecompilerContext.initContext(options);
++    DecompilerContext.initContext(options,logger);
+     DecompilerContext.setCounterContainer(new CounterContainer());
+-    DecompilerContext.setLogger(logger);
+ 
+     if (DecompilerContext.getOption(IFernflowerPreferences.INCLUDE_ENTIRE_CLASSPATH)) {
+       addAllClasspath();
 diff --git a/src/org/jetbrains/java/decompiler/main/IdentityRenamerFactory.java b/src/org/jetbrains/java/decompiler/main/IdentityRenamerFactory.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..bc29407ea2503b16a1eff3b49a6579189eccd14f
+index 0000000000000000000000000000000000000000..e8c33402d6b7e0c07dbe2aacf73c2f8f500fc8c3
 --- /dev/null
 +++ b/src/org/jetbrains/java/decompiler/main/IdentityRenamerFactory.java
 @@ -0,0 +1,28 @@
@@ -126,7 +181,7 @@ index 0000000000000000000000000000000000000000..bc29407ea2503b16a1eff3b49a657918
 +  }
 +
 +  @Override
-+  public String renameAbstractParameter(String abstractParam) {
++  public String renameAbstractParameter(String abstractParam, int index) {
 +    return abstractParam;
 +  }
 +
@@ -138,9 +193,42 @@ index 0000000000000000000000000000000000000000..bc29407ea2503b16a1eff3b49a657918
 +  public void addParentContext(IVariableNameProvider renamer) {
 +  }
 +}
+diff --git a/src/org/jetbrains/java/decompiler/main/extern/IAbstractParameterRenamer.java b/src/org/jetbrains/java/decompiler/main/extern/IAbstractParameterRenamer.java
+deleted file mode 100644
+index 4c509eb6633f575b4f7cc93ad781885e8581be70..0000000000000000000000000000000000000000
+--- a/src/org/jetbrains/java/decompiler/main/extern/IAbstractParameterRenamer.java
++++ /dev/null
+@@ -1,7 +0,0 @@
+-package org.jetbrains.java.decompiler.main.extern;
+-
+-import org.jetbrains.java.decompiler.main.rels.MethodWrapper;
+-
+-public interface IAbstractParameterRenamer {
+-  public String renameParameter(String orig, int index, MethodWrapper wrapper, int flags);
+-}
+diff --git a/src/org/jetbrains/java/decompiler/main/extern/IFernflowerPreferences.java b/src/org/jetbrains/java/decompiler/main/extern/IFernflowerPreferences.java
+index 79dd8e890cd37e88bfbe9f0c22c825b3c2549bb8..7940dcfbd89ec1427459aeeac1aebaea30db1899 100644
+--- a/src/org/jetbrains/java/decompiler/main/extern/IFernflowerPreferences.java
++++ b/src/org/jetbrains/java/decompiler/main/extern/IFernflowerPreferences.java
+@@ -62,6 +62,8 @@ public interface IFernflowerPreferences {
+ 
+   String INCLUDE_ENTIRE_CLASSPATH = "iec";
+ 
++  String USE_JAD_VARNAMING = "jvn";
++
+   Map<String, Object> DEFAULTS = Collections.unmodifiableMap(new HashMap<String, Object>() {{
+     put(REMOVE_BRIDGE, "1");
+     put(REMOVE_SYNTHETIC, "0");
+@@ -96,5 +98,6 @@ public interface IFernflowerPreferences {
+     put(UNIT_TEST_MODE, "0");
+     put(DUMP_ORIGINAL_LINES, "0");
+     put(INCLUDE_ENTIRE_CLASSPATH, "0");
++    put(USE_JAD_VARNAMING, "0");
+   }});
+ }
 diff --git a/src/org/jetbrains/java/decompiler/main/extern/IVariableNameProvider.java b/src/org/jetbrains/java/decompiler/main/extern/IVariableNameProvider.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9d6b1a5cdff732d251e078750b2a26243f93463e
+index 0000000000000000000000000000000000000000..26f10715a8d594f00480a80e9c94c8b3bf011998
 --- /dev/null
 +++ b/src/org/jetbrains/java/decompiler/main/extern/IVariableNameProvider.java
 @@ -0,0 +1,11 @@
@@ -152,7 +240,7 @@ index 0000000000000000000000000000000000000000..9d6b1a5cdff732d251e078750b2a2624
 +
 +public interface IVariableNameProvider {
 +  public Map<VarVersionPair,String> rename(Map<VarVersionPair,String> variables);
-+  public String renameAbstractParameter(String abstractParam);
++  public String renameAbstractParameter(String abstractParam, int index);
 +  public void addParentContext(IVariableNameProvider renamer);
 +}
 diff --git a/src/org/jetbrains/java/decompiler/main/extern/IVariableNamingFactory.java b/src/org/jetbrains/java/decompiler/main/extern/IVariableNamingFactory.java
@@ -183,31 +271,62 @@ index 0f44e42c44c68b178fced0d0c362fe6a027b5a8a..c277392bd6bace5efee52426204b6eeb
  import org.jetbrains.java.decompiler.modules.decompiler.sforms.FlattenStatementsHelper;
  import org.jetbrains.java.decompiler.modules.decompiler.stats.RootStatement;
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-index 3975d8cf93f8a2ce22b57ca3a666f3be77b5dcb4..07ac606e43cdb7d21467d72ce32fb89e9d09a61f 100644
+index 3975d8cf93f8a2ce22b57ca3a666f3be77b5dcb4..9be9edbb36ecd3082cb15f5ff5a6ba8a627f3d89 100644
 --- a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 +++ b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-@@ -577,7 +577,7 @@ public class NestedClassProcessor {
+@@ -577,7 +577,6 @@ public class NestedClassProcessor {
      for (final MethodWrapper meth : child.getWrapper().getMethods()) {
  
        if (meth.root != null) { // neither abstract nor native
 -
-+        if (encmeth != null) { meth.methodStruct.renamer.addParentContext(encmeth.methodStruct.renamer); }
          // local var names
          HashMap<VarVersionPair, String> mapNewNames = new HashMap<VarVersionPair, String>();
          // local var types
+diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LVTVariable.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LVTVariable.java
+index cb376d9b480f06971c71647037a17a166764e805..16f2bfb5fbc04312c21d10d26441786ac0604657 100644
+--- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LVTVariable.java
++++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/LVTVariable.java
+@@ -88,6 +88,8 @@ public class LVTVariable implements Comparable<LVTVariable> {
+   }
+ 
+   public LVTVariable rename(String newName) {
+-    return new LVTVariable(newName, desc, start, end, index, isLVTT);
++    LVTVariable lvtVariable = new LVTVariable(newName, desc, start, end, index, isLVTT);
++    lvtVariable.sig = this.sig;
++    return lvtVariable;
+   }
+ }
+\ No newline at end of file
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 164ddb5639ed92ae8bcab25a62713211d2e904fe..59b1c42717441f6bce853aa4ce9d710c15d723b6 100644
+index 164ddb5639ed92ae8bcab25a62713211d2e904fe..fcd8c64de9c7d3af4e9ce943c41dd58ced598014 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-@@ -18,6 +18,7 @@ package org.jetbrains.java.decompiler.modules.decompiler.vars;
+@@ -16,13 +16,16 @@
+ package org.jetbrains.java.decompiler.modules.decompiler.vars;
+ 
  import org.jetbrains.java.decompiler.code.CodeConstants;
++import org.jetbrains.java.decompiler.main.ClassesProcessor.ClassNode;
  import org.jetbrains.java.decompiler.main.DecompilerContext;
  import org.jetbrains.java.decompiler.main.collectors.VarNamesCollector;
-+import org.jetbrains.java.decompiler.main.rels.MethodWrapper;
  import org.jetbrains.java.decompiler.modules.decompiler.ExprProcessor;
  import org.jetbrains.java.decompiler.modules.decompiler.exps.AssignmentExprent;
  import org.jetbrains.java.decompiler.modules.decompiler.exps.ConstExprent;
-@@ -424,35 +425,47 @@ public class VarDefinitionHelper {
+ import org.jetbrains.java.decompiler.modules.decompiler.exps.Exprent;
++import org.jetbrains.java.decompiler.modules.decompiler.exps.NewExprent;
+ import org.jetbrains.java.decompiler.modules.decompiler.exps.VarExprent;
++import org.jetbrains.java.decompiler.modules.decompiler.sforms.DirectGraph.ExprentIterator;
+ import org.jetbrains.java.decompiler.modules.decompiler.stats.CatchAllStatement;
+ import org.jetbrains.java.decompiler.modules.decompiler.stats.CatchStatement;
+ import org.jetbrains.java.decompiler.modules.decompiler.stats.DoStatement;
+@@ -33,6 +36,7 @@ import org.jetbrains.java.decompiler.struct.StructMethod;
+ import org.jetbrains.java.decompiler.struct.gen.MethodDescriptor;
+ import org.jetbrains.java.decompiler.struct.gen.VarType;
+ import org.jetbrains.java.decompiler.struct.gen.generics.GenericType;
++import org.jetbrains.java.decompiler.util.StatementIterator;
+ 
+ import java.util.*;
+ import java.util.Map.Entry;
+@@ -424,35 +428,77 @@ public class VarDefinitionHelper {
  
    private void propogateLVTs(Statement stat) {
      MethodDescriptor md = MethodDescriptor.parseDescriptor(mt.getDescriptor());
@@ -221,10 +340,14 @@ index 164ddb5639ed92ae8bcab25a62713211d2e904fe..59b1c42717441f6bce853aa4ce9d710c
      }
  
      for (VarType var : md.params) {
-       List<LVTVariable> vars = varproc.getLVT().getCandidates(index);
-       if (vars != null) {
+-      List<LVTVariable> vars = varproc.getLVT().getCandidates(index);
+-      if (vars != null) {
 -        types.put(new VarVersionPair(index, 0), new VarInfo(vars.get(0), var));
-+        types.put(new VarVersionPair(index, 0), new VarInfo(null,null));
++      if (varproc.getLVT() != null) {
++        List<LVTVariable> vars = varproc.getLVT().getCandidates(index);
++        if (vars != null) {
++          types.put(new VarVersionPair(index, 0), new VarInfo(null,null));
++        }
        }
        index += var.stackSize;
      }
@@ -237,12 +360,39 @@ index 164ddb5639ed92ae8bcab25a62713211d2e904fe..59b1c42717441f6bce853aa4ce9d710c
      for (Entry<VarVersionPair, VarInfo> e : types.entrySet()) {
 -      if (e.getValue().lvt != null) {
 -        varproc.setVarLVT(e.getKey(), e.getValue().lvt);
--      }
 +      typeNames.put(e.getKey(), e.getValue().typeName());
-     }
--
-+    StructMethod current_meth = (StructMethod)DecompilerContext.getProperty(DecompilerContext.CURRENT_METHOD);
-+    Map<VarVersionPair, String> renames = current_meth.renamer.rename(typeNames);
++    }
++    final StructMethod current_meth = (StructMethod)DecompilerContext.getProperty(DecompilerContext.CURRENT_METHOD);
++    Map<VarVersionPair, String> renames = current_meth.getRenamer().rename(typeNames);
++
++    // Stuff the parent context into enclosed child methods
++    StatementIterator.iterate(root, new ExprentIterator(){
++      @Override
++      public int processExprent(Exprent exprent){
++        ClassNode child = null;
++        if (exprent.type == Exprent.EXPRENT_VAR) {
++          VarExprent var = (VarExprent)exprent;
++          if (var.isClassDef()) {
++            child = DecompilerContext.getClassProcessor().getMapRootClasses().get(var.getVarType().value);
++          }
++        }
++        else if (exprent.type == Exprent.EXPRENT_NEW) {
++          NewExprent _new = (NewExprent)exprent;
++          if (_new.isAnonymous()) { //TODO: Check for Lambda here?
++            child = DecompilerContext.getClassProcessor().getMapRootClasses().get(_new.getNewType().value);
++          }
++        }
++
++        if (child != null) {
++          for (StructMethod meth : child.classStruct.getMethods()) {
++            meth.getRenamer().addParentContext(current_meth.getRenamer());
++          }
++        }
++        return 0;
+       }
+-    }
++    });
+ 
      Map<VarVersionPair, LVTVariable> lvts = new HashMap<VarVersionPair, LVTVariable>();
 +
      for (Entry<VarVersionPair, VarInfo> e : types.entrySet()) {
@@ -266,7 +416,7 @@ index 164ddb5639ed92ae8bcab25a62713211d2e904fe..59b1c42717441f6bce853aa4ce9d710c
        }
      }
  
-@@ -508,14 +521,21 @@ public class VarDefinitionHelper {
+@@ -508,14 +554,21 @@ public class VarDefinitionHelper {
      String cast;
      private VarInfo(LVTVariable lvt, VarType type) {
        if (lvt != null && lvt.getSig() != null) {
@@ -292,7 +442,7 @@ index 164ddb5639ed92ae8bcab25a62713211d2e904fe..59b1c42717441f6bce853aa4ce9d710c
    }
  
 diff --git a/src/org/jetbrains/java/decompiler/struct/StructMethod.java b/src/org/jetbrains/java/decompiler/struct/StructMethod.java
-index 8f0da2b8eeed9428133834dbf4bd8be3f6e38ee5..7e7f7580f5301ea94b4bf97440a471caa3f62c50 100644
+index 8f0da2b8eeed9428133834dbf4bd8be3f6e38ee5..d7ede2e3ab1f542a7223cc79e2f139d29c29cec4 100644
 --- a/src/org/jetbrains/java/decompiler/struct/StructMethod.java
 +++ b/src/org/jetbrains/java/decompiler/struct/StructMethod.java
 @@ -18,6 +18,7 @@ package org.jetbrains.java.decompiler.struct;
@@ -307,24 +457,48 @@ index 8f0da2b8eeed9428133834dbf4bd8be3f6e38ee5..7e7f7580f5301ea94b4bf97440a471ca
    private InstructionSequence seq;
    private boolean expanded = false;
    private VBStyleCollection<StructGeneralAttribute, String> codeAttributes;
-+  public final IVariableNameProvider renamer;
++  private IVariableNameProvider renamer;
  
    public StructMethod(DataInputFullStream in, StructClass clStruct) throws IOException {
      classStruct = clStruct;
-@@ -78,6 +80,7 @@ public class StructMethod extends StructMember {
-       attributes.addAllWithKey(codeAttributes);
-       codeAttributes = null;
+@@ -118,10 +120,17 @@ public class StructMethod extends StructMember {
+     if (containsCode && !expanded) {
+       byte[] code = classStruct.getLoader().loadBytecode(this, codeFullLength);
+       seq = parseBytecode(new DataInputFullStream(code), codeLength, classStruct.getPool());
++      loadRenamer();
+       expanded = true;
      }
-+    this.renamer = DecompilerContext.getNamingFactory().createFactory(this);
    }
  
-   @Override
++  private void loadRenamer() {
++    if (this.renamer == null) {
++      this.renamer = DecompilerContext.getNamingFactory().createFactory(this);
++    }
++  }
++
+   public void releaseResources() throws IOException {
+     if (containsCode && expanded) {
+       seq = null;
+@@ -405,4 +414,13 @@ public class StructMethod extends StructMember {
+   public GenericMethodDescriptor getSignature() {
+     return signature;
+   }
++
++  public IVariableNameProvider getRenamer() {
++    loadRenamer();
++    return renamer;
++  }
++
++  public void unloadRenamer() {
++    this.renamer = null;
++  }
+ }
 diff --git a/src/org/jetbrains/java/decompiler/util/JADNameProvider.java b/src/org/jetbrains/java/decompiler/util/JADNameProvider.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..010ef5fdc0137798ca8a7097222cbc67ba5101ec
+index 0000000000000000000000000000000000000000..b588cec7b138dfffeb1d57a11aeb7e4b41fa5a38
 --- /dev/null
 +++ b/src/org/jetbrains/java/decompiler/util/JADNameProvider.java
-@@ -0,0 +1,193 @@
+@@ -0,0 +1,194 @@
 +package org.jetbrains.java.decompiler.util;
 +
 +import java.util.ArrayList;
@@ -352,13 +526,13 @@ index 0000000000000000000000000000000000000000..010ef5fdc0137798ca8a7097222cbc67
 +
 +    public JADNameProvider(StructMethod wrapper) {
 +      last = new HashMap<String, Holder>();
-+      last.put("int",       new Holder(0, true,  "i", "j", "k", "l"));
-+      last.put("byte",       new Holder(0, false, "b"       ));
-+      last.put("char",       new Holder(0, false, "c"       ));
-+      last.put("short",       new Holder(1, false, "short"   ));
-+      last.put("boolean",       new Holder(0, true,  "flag"    ));
-+      last.put("double",       new Holder(0, false, "d"       ));
-+      last.put("float",       new Holder(0, true,  "f"       ));
++      last.put("int",     new Holder(0, true,  "i", "j", "k", "l"));
++      last.put("byte",    new Holder(0, false, "b"       ));
++      last.put("char",    new Holder(0, false, "c"       ));
++      last.put("short",   new Holder(1, false, "short"   ));
++      last.put("boolean", new Holder(0, true,  "flag"    ));
++      last.put("double",  new Holder(0, false, "d"       ));
++      last.put("float",   new Holder(0, true,  "f"       ));
 +      last.put("File",    new Holder(1, true,  "file"    ));
 +      last.put("String",  new Holder(0, true,  "s"       ));
 +      last.put("Class",   new Holder(0, true,  "oclass"  ));
@@ -373,6 +547,7 @@ index 0000000000000000000000000000000000000000..010ef5fdc0137798ca8a7097222cbc67
 +      remap.put("long", "int");
 +    }
 +
++    @Override
 +    public void addParentContext(IVariableNameProvider iparent) {
 +        JADNameProvider parent = (JADNameProvider) iparent;
 +        last = new HashMap<String, Holder>();
@@ -421,7 +596,7 @@ index 0000000000000000000000000000000000000000..010ef5fdc0137798ca8a7097222cbc67
 +          continue;
 +        }
 +        if (type.indexOf('<') != -1) {
-+          type = type.substring(0, type.indexOf('<') - 1);
++          type = type.substring(0, type.indexOf('<'));
 +        }
 +        if (type.indexOf('.') != -1) {
 +          type = type.substring(type.lastIndexOf('.')+1);
@@ -505,7 +680,7 @@ index 0000000000000000000000000000000000000000..010ef5fdc0137798ca8a7097222cbc67
 +    }
 +
 +    @Override
-+    public String renameAbstractParameter(String abstractParam) {
++    public String renameAbstractParameter(String abstractParam, int index) {
 +      return abstractParam;
 +    }
 +
@@ -519,6 +694,55 @@ index 0000000000000000000000000000000000000000..010ef5fdc0137798ca8a7097222cbc67
 +    }
 +}
 \ No newline at end of file
+diff --git a/src/org/jetbrains/java/decompiler/util/StatementIterator.java b/src/org/jetbrains/java/decompiler/util/StatementIterator.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4e4c8b475a4fdf4d6452ebe57621fc36bc2a2e38
+--- /dev/null
++++ b/src/org/jetbrains/java/decompiler/util/StatementIterator.java
+@@ -0,0 +1,43 @@
++package org.jetbrains.java.decompiler.util;
++
++import java.util.List;
++
++import org.jetbrains.java.decompiler.modules.decompiler.exps.Exprent;
++import org.jetbrains.java.decompiler.modules.decompiler.sforms.DirectGraph.ExprentIterator;
++import org.jetbrains.java.decompiler.modules.decompiler.stats.Statement;
++
++public class StatementIterator {
++  public static void iterate(Statement stat, ExprentIterator itr) {
++    if (stat == null) {
++      return;
++    }
++
++    for (Exprent exp : stat.getVarDefinitions()) {
++      iterate(exp, itr);
++    }
++
++    if (stat.getExprents() == null) {
++      for (Object obj : stat.getSequentialObjects()) {
++        if (obj instanceof Statement) {
++          iterate((Statement)obj, itr);
++        }
++        else if (obj instanceof Exprent) {
++          iterate((Exprent)obj, itr);
++        }
++      }
++    }
++    else {
++      for (Exprent exp : stat.getExprents()) {
++        iterate(exp, itr);
++      }
++    }
++  }
++
++  private static void iterate(Exprent exp, ExprentIterator itr) {
++    List<Exprent> lst = exp.getAllExprents(true);
++    lst.add(exp);
++    for (Exprent exprent : lst) {
++      itr.processExprent(exprent);
++    }
++  }
++}
 diff --git a/test/org/jetbrains/java/decompiler/DecompilerTestFixture.java b/test/org/jetbrains/java/decompiler/DecompilerTestFixture.java
 index 77eda8797ac72262d0c6dabbbd06a0ed0f481596..f2c344a925dda9d1081aa867987147fd3fb3664e 100644
 --- a/test/org/jetbrains/java/decompiler/DecompilerTestFixture.java
@@ -564,14 +788,14 @@ index 77eda8797ac72262d0c6dabbbd06a0ed0f481596..f2c344a925dda9d1081aa867987147fd
    }
  }
 diff --git a/test/org/jetbrains/java/decompiler/LVTTest.java b/test/org/jetbrains/java/decompiler/LVTTest.java
-index 368407ef017b524f7e26940606e7b50714c7d96a..ff2457b4e38f5cec0854d21a15ca4bc5551bbda3 100644
+index 368407ef017b524f7e26940606e7b50714c7d96a..b4af1f7cfd661fe456121f999a495c89dffb1d0f 100644
 --- a/test/org/jetbrains/java/decompiler/LVTTest.java
 +++ b/test/org/jetbrains/java/decompiler/LVTTest.java
 @@ -59,4 +59,5 @@ public class LVTTest extends SingleClassesTestBase {
  //  @Test public void testMCAbstractResourcePack() { doTest("net/minecraft/client/resources/AbstractResourcePack"); }
  //  @Test public void testMCGuiShareToLan() { doTest("net/minecraft/client/gui/GuiShareToLan"); }
  //  @Test public void testMCContainerPlayer() { doTest("net/minecraft/inventory/ContainerPlayer"); }
-+  @Test public void testMCContainerPlayer() { doTest("net/minecraft/inventory/ContainerPlayer"); }
++  @Test public void testMCContainerPlayer() { doTest("net/minecraft/command/PlayerSelector"); }
  }
 diff --git a/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java b/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
 index 2ae6da55e0d8ecb2fbdb39a6e42d1f179ac32203..087c8102c11b1258d8e3f1615fe64f745b8587d6 100644

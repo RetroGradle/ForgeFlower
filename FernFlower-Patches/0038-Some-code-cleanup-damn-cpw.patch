@@ -56,10 +56,10 @@ index ea7e6110cf1e5eeb4d3f13d98527d53e85dd60fe..e68cb97ea66761387a6d05a8b38f0f1b
    }
  }
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
-index 0768912fe41d5d60580029e640cfaab07e6447bb..36cd7fb229ea03784017336da4dd1cb0fd528fa4 100644
+index 455e9876fc9d44efbed741fe5b10a50f676e4e6e..acc74a60fd6a90ad15959f6c3164757390542ada 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
-@@ -242,9 +242,4 @@ public class DoStatement extends Statement {
+@@ -243,9 +243,4 @@ public class DoStatement extends Statement {
    public void setLooptype(int looptype) {
      this.looptype = looptype;
    }

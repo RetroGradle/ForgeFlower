@@ -756,7 +756,7 @@ index 7ef93995cb08d8bc8f88603c16907740a6b09b57..5c2ff051baebf27af879a6e01a4bd855
 +  public final List<VarType> exceptions = new ArrayList<VarType>();
  }
 diff --git a/src/org/jetbrains/java/decompiler/struct/gen/generics/GenericType.java b/src/org/jetbrains/java/decompiler/struct/gen/generics/GenericType.java
-index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..c45d47f7e7efbd28e5bbddb02441299306518733 100644
+index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..aeb786a7b26864424c5b730ef3f954b9bfb583be 100644
 --- a/src/org/jetbrains/java/decompiler/struct/gen/generics/GenericType.java
 +++ b/src/org/jetbrains/java/decompiler/struct/gen/generics/GenericType.java
 @@ -16,38 +16,43 @@
@@ -817,7 +817,7 @@ index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..c45d47f7e7efbd28e5bbddb024412993
  
      int index = 0;
      loop:
-@@ -65,32 +70,53 @@ public class GenericType {
+@@ -65,32 +70,54 @@ public class GenericType {
          case 'L':
            type = CodeConstants.TYPE_OBJECT;
            signature = signature.substring(index + 1, signature.length() - 1);
@@ -865,7 +865,7 @@ index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..c45d47f7e7efbd28e5bbddb024412993
 +              }
 +
 +              if (name_buff.length() > 0) {
-+                name_buff.append('.');
++                name_buff.append('$');
 +              }
 +              name_buff.append(name);
 +
@@ -885,13 +885,14 @@ index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..c45d47f7e7efbd28e5bbddb024412993
 +
 +                signature = signature.substring(cl.length() + 1);
 +              }
++              cl = getNextClassSignature(signature);
              }
            }
 -
            break loop;
  
          default:
-@@ -101,10 +127,20 @@ public class GenericType {
+@@ -101,10 +128,20 @@ public class GenericType {
        index++;
      }
  
@@ -916,7 +917,7 @@ index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..c45d47f7e7efbd28e5bbddb024412993
    }
  
    private static String getNextClassSignature(String value) {
-@@ -132,11 +168,13 @@ public class GenericType {
+@@ -132,11 +169,13 @@ public class GenericType {
      return value.substring(0, index);
    }
  
@@ -932,7 +933,7 @@ index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..c45d47f7e7efbd28e5bbddb024412993
      while (value.length() > 0) {
        String typeStr = getNextType(value);
        int len = typeStr.length();
-@@ -154,16 +192,16 @@ public class GenericType {
+@@ -154,16 +193,16 @@ public class GenericType {
            break;
        }
  
@@ -952,7 +953,7 @@ index 9305bf93cf68b9f87b6d765b25494bcb2813c2aa..c45d47f7e7efbd28e5bbddb024412993
    }
  
    public static String getNextType(String value) {
-@@ -212,37 +250,71 @@ public class GenericType {
+@@ -212,37 +251,71 @@ public class GenericType {
      return value.substring(0, index + 1);
    }
  

@@ -5,7 +5,7 @@ Subject: [PATCH] Change begin/end detection. Less derpy.
 
 
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
-index 8359284281d3c3e02c15ed407ab4dfacf9eae478..0768912fe41d5d60580029e640cfaab07e6447bb 100644
+index e7220368e6116aec755c46f25e397bf6f8f76443..455e9876fc9d44efbed741fe5b10a50f676e4e6e 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/stats/DoStatement.java
 @@ -21,6 +21,7 @@ import org.jetbrains.java.decompiler.modules.decompiler.ExprProcessor;
@@ -16,7 +16,7 @@ index 8359284281d3c3e02c15ed407ab4dfacf9eae478..0768912fe41d5d60580029e640cfaab0
  
  import java.util.ArrayList;
  import java.util.List;
-@@ -241,4 +242,9 @@ public class DoStatement extends Statement {
+@@ -242,4 +243,9 @@ public class DoStatement extends Statement {
    public void setLooptype(int looptype) {
      this.looptype = looptype;
    }
