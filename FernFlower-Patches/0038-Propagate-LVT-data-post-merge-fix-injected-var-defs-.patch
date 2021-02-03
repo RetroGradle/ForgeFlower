@@ -1,8 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lex Manos <LexManos@gmail.com>
 Date: Sun, 27 Sep 2015 21:17:47 -0700
-Subject: [PATCH] Propogate LVT data post merge. And fix injected var defs LVT
- association.
+Subject: [PATCH] Propagate LVT data post merge, fix injected var defs LVT
+ association
 
 
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/exps/VarExprent.java b/src/org/jetbrains/java/decompiler/modules/decompiler/exps/VarExprent.java
@@ -26,7 +26,7 @@ index 3d5f03b67d07b54d305c16e1dce4d10a93c5b26d..05a4f79e80f9ac6023ff66996e3fda0e
    public String toString() {
      return lvt != null ? lvt.name :  "var_" + index + "_" + version;
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 8e7a6b5148226b0123fe7e3589bd090e8ac0c4d3..1f09fc657c217be18104ba40e49558c6db36a51f 100644
+index 8e7a6b5148226b0123fe7e3589bd090e8ac0c4d3..8ae12fe552787580c73728af83502a1de26d8d5a 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 @@ -133,7 +133,6 @@ public class VarDefinitionHelper {
@@ -239,7 +239,7 @@ index 8e7a6b5148226b0123fe7e3589bd090e8ac0c4d3..1f09fc657c217be18104ba40e49558c6
          } else {
 -            System.currentTimeMillis();
 +          System.currentTimeMillis();
-+          System.out.println("null " + new VarVersionPair(var));
++          //System.out.println("null " + new VarVersionPair(var));
          }
        }
      }

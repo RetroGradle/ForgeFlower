@@ -6,10 +6,10 @@ Subject: [PATCH] Fix issue where For loops would be enhanced to ForEach
 
 
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
-index f354f0684b4d16e8dcd08b2ce6db76210249b571..11c7c599d4413cb46b58906f4b7fdbe4a019e1f0 100644
+index 54794ccdc251982395b75c30f3a3a9970bcf3afd..3025737508432bebbbd645908852f93d44dd384f 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/MergeHelper.java
-@@ -501,10 +501,12 @@ public class MergeHelper {
+@@ -515,10 +515,12 @@ public class MergeHelper {
          }
  
          if (initExprents[0].getRight().type != Exprent.EXPRENT_CONST ||
@@ -23,7 +23,7 @@ index f354f0684b4d16e8dcd08b2ce6db76210249b571..11c7c599d4413cb46b58906f4b7fdbe4
          FunctionExprent funcRight = (FunctionExprent)initExprents[1].getRight();
          FunctionExprent funcInc   = (FunctionExprent)lastExprent;
          ArrayExprent    arr       = (ArrayExprent)firstDoExprent.getRight();
-@@ -525,6 +527,9 @@ public class MergeHelper {
+@@ -539,6 +541,9 @@ public class MergeHelper {
              counter.getVersion() != index.getVersion()) {
            return false;
          }
