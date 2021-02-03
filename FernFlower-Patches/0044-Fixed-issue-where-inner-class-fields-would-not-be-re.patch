@@ -6,7 +6,7 @@ Subject: [PATCH] Fixed issue where inner class fields would not be replaced by
 
 
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-index 1eaeaa6519574c4defe41c789743631fb6c6222f..d506f3398cfbb7b8594dcdc29d6648f04dd51155 100644
+index 1eaeaa6519574c4defe41c789743631fb6c6222f..e2e684b860ac156e55218000c92ab31f67edaaaa 100644
 --- a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 +++ b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 @@ -704,8 +704,8 @@ public class NestedClassProcessor {
@@ -46,7 +46,16 @@ index 1eaeaa6519574c4defe41c789743631fb6c6222f..d506f3398cfbb7b8594dcdc29d6648f0
            }
  
            private Exprent replaceExprent(Exprent exprent) {
-@@ -1189,4 +1189,43 @@ public class NestedClassProcessor {
+@@ -1143,7 +1143,7 @@ public class NestedClassProcessor {
+           res = classname.equals(((InvocationExprent)expr).getClassname());
+           break;
+         case Exprent.EXPRENT_NEW:
+-          VarType newType = expr.getExprType();
++          VarType newType = ((NewExprent) expr).getNewType();
+           res = newType.type == CodeConstants.TYPE_OBJECT && classname.equals(newType.value);
+           break;
+         case Exprent.EXPRENT_VAR:
+@@ -1189,4 +1189,41 @@ public class NestedClassProcessor {
        return keyfield.hashCode() + varpaar.hashCode();
      }
    }
@@ -56,8 +65,6 @@ index 1eaeaa6519574c4defe41c789743631fb6c6222f..d506f3398cfbb7b8594dcdc29d6648f0
 +    // ret != exprent - replace exprent with ret
 +    Exprent processExprent(Exprent exprent);
 +  }
-+
-+
 +
 +  private static void iterateExprents(DirectGraph graph, ExprentIteratorWithReplace iter) {
 +    LinkedList<DirectNode> stack = new LinkedList<DirectNode>();

@@ -1,32 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lex Manos <LexManos@gmail.com>
 Date: Thu, 15 Oct 2015 15:51:24 -0700
-Subject: [PATCH] Added support for ++ and -- field accessors in inner classes.
- And fixed inner class type find issue.
+Subject: [PATCH] Add support for ++ and -- field accessors in inner classes
 
 
-diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-index d506f3398cfbb7b8594dcdc29d6648f04dd51155..3975d8cf93f8a2ce22b57ca3a666f3be77b5dcb4 100644
---- a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-+++ b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-@@ -1143,7 +1143,7 @@ public class NestedClassProcessor {
-           res = classname.equals(((InvocationExprent)expr).getClassname());
-           break;
-         case Exprent.EXPRENT_NEW:
--          VarType newType = expr.getExprType();
-+          VarType newType = ((NewExprent)expr).getNewType();
-           res = newType.type == CodeConstants.TYPE_OBJECT && classname.equals(newType.value);
-           break;
-         case Exprent.EXPRENT_VAR:
-@@ -1196,8 +1196,6 @@ public class NestedClassProcessor {
-     Exprent processExprent(Exprent exprent);
-   }
- 
--
--
-   private static void iterateExprents(DirectGraph graph, ExprentIteratorWithReplace iter) {
-     LinkedList<DirectNode> stack = new LinkedList<DirectNode>();
-     stack.add(graph.first);
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedMemberAccess.java b/src/org/jetbrains/java/decompiler/main/rels/NestedMemberAccess.java
 index 3fa8128a4e7f607770d592033588e716f49f12f0..b4856a6fabd1b06c2f8a12d9d11f62f2b2e408ec 100644
 --- a/src/org/jetbrains/java/decompiler/main/rels/NestedMemberAccess.java

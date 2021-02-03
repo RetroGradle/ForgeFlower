@@ -1,7 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Lex Manos <LexManos@gmail.com>
 Date: Fri, 2 Oct 2015 01:34:53 -0700
-Subject: [PATCH] Cleanup unwanted variables in synchronized headers.
+Subject: [PATCH] Cleanup unwanted variables in synchronized headers, fix
+ switch cases leaking variables incorrectly
 
 
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/MethodProcessorRunnable.java b/src/org/jetbrains/java/decompiler/main/rels/MethodProcessorRunnable.java
@@ -168,10 +169,10 @@ index 0000000000000000000000000000000000000000..371fc5aafff4dd8f7dc86bc476e97f8e
 +  }
 +}
 diff --git a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-index 8ae12fe552787580c73728af83502a1de26d8d5a..7ba22d2ae4bd9c6319c54e60901b04c027c6bc5c 100644
+index 8ae12fe552787580c73728af83502a1de26d8d5a..2259ce1c9b2bc515fd588ff44a2d152567ab3cf4 100644
 --- a/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
 +++ b/src/org/jetbrains/java/decompiler/modules/decompiler/vars/VarDefinitionHelper.java
-@@ -638,6 +638,12 @@ public class VarDefinitionHelper {
+@@ -638,6 +638,15 @@ public class VarDefinitionHelper {
                  leaked.putAll(leaked_n); //First is outside the scope so leak!
                }
              }
@@ -179,6 +180,9 @@ index 8ae12fe552787580c73728af83502a1de26d8d5a..7ba22d2ae4bd9c6319c54e60901b04c0
 +                     stat.type == Statement.TYPE_SYNCRONIZED) {
 +              if (obj == stat.getFirst()) {
 +                leaked.putAll(leaked_n); //First is outside the scope so leak!
++              }
++              else {
++                leaked_n.clear();
 +              }
 +            }
              this_vars.putAll(leaked_n);
