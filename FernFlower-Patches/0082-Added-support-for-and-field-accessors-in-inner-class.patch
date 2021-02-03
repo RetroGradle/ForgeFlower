@@ -6,10 +6,10 @@ Subject: [PATCH] Added support for ++ and -- field accessors in inner classes.
 
 
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-index 6d40b8a1dc102b0cdf90aed615e74c10cbd08ffa..1e69d8d4c01f89a1703a8e40424e8cb3c4ba62d3 100644
+index d506f3398cfbb7b8594dcdc29d6648f04dd51155..3975d8cf93f8a2ce22b57ca3a666f3be77b5dcb4 100644
 --- a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 +++ b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-@@ -1145,7 +1145,7 @@ public class NestedClassProcessor {
+@@ -1143,7 +1143,7 @@ public class NestedClassProcessor {
            res = classname.equals(((InvocationExprent)expr).getClassname());
            break;
          case Exprent.EXPRENT_NEW:
@@ -18,7 +18,7 @@ index 6d40b8a1dc102b0cdf90aed615e74c10cbd08ffa..1e69d8d4c01f89a1703a8e40424e8cb3
            res = newType.type == CodeConstants.TYPE_OBJECT && classname.equals(newType.value);
            break;
          case Exprent.EXPRENT_VAR:
-@@ -1198,8 +1198,6 @@ public class NestedClassProcessor {
+@@ -1196,8 +1196,6 @@ public class NestedClassProcessor {
      Exprent processExprent(Exprent exprent);
    }
  

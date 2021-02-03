@@ -18,7 +18,7 @@ index 2e1668de1af3414bfbed0bf72461688246303931..16d778867677249c16b38fcfbca16618
      System.out.println();
      for (StatEdge edge : statement.getAllSuccessorEdges())
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-index 33785497b358346846ce58824ce3c2f0aa2be815..12653a4836d4f864154310b6115369e943f36fd7 100644
+index 33785497b358346846ce58824ce3c2f0aa2be815..1eaeaa6519574c4defe41c789743631fb6c6222f 100644
 --- a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 +++ b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 @@ -16,6 +16,7 @@
@@ -41,16 +41,7 @@ index 33785497b358346846ce58824ce3c2f0aa2be815..12653a4836d4f864154310b6115369e9
  import org.jetbrains.java.decompiler.modules.decompiler.stats.Statement;
  import org.jetbrains.java.decompiler.modules.decompiler.vars.LVTVariable;
  import org.jetbrains.java.decompiler.modules.decompiler.vars.VarTypeProcessor;
-@@ -39,6 +43,8 @@ import org.jetbrains.java.decompiler.struct.gen.MethodDescriptor;
- import org.jetbrains.java.decompiler.struct.gen.VarType;
- import org.jetbrains.java.decompiler.util.InterpreterUtil;
- 
-+import com.sun.xml.internal.ws.org.objectweb.asm.Opcodes;
-+
- import java.util.*;
- import java.util.Map.Entry;
- 
-@@ -59,6 +65,10 @@ public class NestedClassProcessor {
+@@ -59,6 +63,10 @@ public class NestedClassProcessor {
        return;
      }
  
@@ -61,7 +52,7 @@ index 33785497b358346846ce58824ce3c2f0aa2be815..12653a4836d4f864154310b6115369e9
      if (node.type != ClassNode.CLASS_LAMBDA) {
  
        computeLocalVarsAndDefinitions(node);
-@@ -102,6 +112,125 @@ public class NestedClassProcessor {
+@@ -102,6 +110,125 @@ public class NestedClassProcessor {
      }
    }
  
@@ -88,7 +79,7 @@ index 33785497b358346846ce58824ce3c2f0aa2be815..12653a4836d4f864154310b6115369e9
 +      return;
 +    }
 +
-+    final int STATIC_FINAL_SYNTHETIC = Opcodes.ACC_STATIC | Opcodes.ACC_FINAL | Opcodes.ACC_SYNTHETIC;
++    final int STATIC_FINAL_SYNTHETIC = CodeConstants.ACC_STATIC | CodeConstants.ACC_FINAL | CodeConstants.ACC_SYNTHETIC;
 +    Set<String> potentialFields = new HashSet<String>();
 +    for (StructField fd : node.classStruct.getFields()) {
 +      if ((fd.getAccessFlags() & STATIC_FINAL_SYNTHETIC) == STATIC_FINAL_SYNTHETIC && "[I".equals(fd.getDescriptor())) {

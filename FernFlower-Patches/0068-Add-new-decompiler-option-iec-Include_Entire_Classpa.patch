@@ -6,7 +6,7 @@ Subject: [PATCH] Add new decompiler option -iec Include_Entire_Classpath which
 
 
 diff --git a/src/org/jetbrains/java/decompiler/main/Fernflower.java b/src/org/jetbrains/java/decompiler/main/Fernflower.java
-index e355ee9ff5bc6e5c3a9dd2262c1c33b2dc826f83..65733ac2c8ea53277e5a2ffe54ea7e91e0c6fc97 100644
+index e355ee9ff5bc6e5c3a9dd2262c1c33b2dc826f83..6afe975fe2034ad25b7810a0bdc59ebcff8453e1 100644
 --- a/src/org/jetbrains/java/decompiler/main/Fernflower.java
 +++ b/src/org/jetbrains/java/decompiler/main/Fernflower.java
 @@ -19,6 +19,7 @@ import org.jetbrains.java.decompiler.main.ClassesProcessor.ClassNode;
@@ -39,7 +39,7 @@ index e355ee9ff5bc6e5c3a9dd2262c1c33b2dc826f83..65733ac2c8ea53277e5a2ffe54ea7e91
    }
  
    public void decompileContext() {
-@@ -92,4 +100,25 @@ public class Fernflower implements IDecompiledData {
+@@ -92,4 +100,26 @@ public class Fernflower implements IDecompiledData {
        return null;
      }
    }
@@ -56,7 +56,8 @@ index e355ee9ff5bc6e5c3a9dd2262c1c33b2dc826f83..65733ac2c8ea53277e5a2ffe54ea7e91
 +        if (found.contains(file.getAbsolutePath()))
 +          continue;
 +
-+        if (file.exists()) {
++        // only add .class files from classpath
++        if (file.exists() && (file.getName().endsWith(".class") || file.getName().endsWith(".jar"))) {
 +          DecompilerContext.getLogger().writeMessage("Adding File to context from classpath: " + file, Severity.INFO);
 +          structContext.addSpace(file, false);
 +          found.add(file.getAbsolutePath());
@@ -85,3 +86,15 @@ index 31871c5d945034a810fa9f866446e14c40cd9b18..79dd8e890cd37e88bfbe9f0c22c825b3
 +    put(INCLUDE_ENTIRE_CLASSPATH, "0");
    }});
  }
+diff --git a/src/org/jetbrains/java/decompiler/struct/ContextUnit.java b/src/org/jetbrains/java/decompiler/struct/ContextUnit.java
+index 850c3d84888d95343abd8a3c297baac58783a8c3..e3043962de86e4823458766ff2afda4eb3e71e5f 100644
+--- a/src/org/jetbrains/java/decompiler/struct/ContextUnit.java
++++ b/src/org/jetbrains/java/decompiler/struct/ContextUnit.java
+@@ -110,6 +110,7 @@ public class ContextUnit {
+         // classes
+         for (int i = 0; i < classes.size(); i++) {
+           StructClass cl = classes.get(i);
++          if (!cl.isOwn()) continue;
+           String entryName = decompiledData.getClassEntryName(cl, classEntries.get(i));
+           if (entryName != null) {
+             String content = decompiledData.getClassContent(cl);

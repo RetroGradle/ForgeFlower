@@ -69,7 +69,7 @@ index b07b27ac85efa26329091d217623301bc3cdba45..7dec9ec6fb04c6cd2081f2e452d072f7
  compileJava.options.deprecation = true
  
 diff --git a/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java b/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
-index 660d0313e68f87b72b694b886ab321792fb5a8bc..0d68e8886c6f6584c4514e9b95f320fb05b9e941 100644
+index 660d0313e68f87b72b694b886ab321792fb5a8bc..2ae6da55e0d8ecb2fbdb39a6e42d1f179ac32203 100644
 --- a/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
 +++ b/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
 @@ -16,8 +16,12 @@
@@ -243,7 +243,7 @@ index 660d0313e68f87b72b694b886ab321792fb5a8bc..0d68e8886c6f6584c4514e9b95f320fb
 +            System.out.println("Orig md5:"+md5s.get(fname));
              System.out.println("Variant md5: "+md5digest);
 -          }
-+            writeFile(expected,fname,outRoot);
++            if (expected != null) writeFile(expected,fname,outRoot);
 +            writeFile(found,fname+"."+md5digest,outRoot);
 +        } else if (!md5digest.equals(md5s.get(fname))) {
 +          System.out.println("Existing Variant: " + fname);

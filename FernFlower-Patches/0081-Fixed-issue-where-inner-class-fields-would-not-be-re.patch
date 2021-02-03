@@ -6,10 +6,10 @@ Subject: [PATCH] Fixed issue where inner class fields would not be replaced by
 
 
 diff --git a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-index 12653a4836d4f864154310b6115369e943f36fd7..6d40b8a1dc102b0cdf90aed615e74c10cbd08ffa 100644
+index 1eaeaa6519574c4defe41c789743631fb6c6222f..d506f3398cfbb7b8594dcdc29d6648f04dd51155 100644
 --- a/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
 +++ b/src/org/jetbrains/java/decompiler/main/rels/NestedClassProcessor.java
-@@ -706,8 +706,8 @@ public class NestedClassProcessor {
+@@ -704,8 +704,8 @@ public class NestedClassProcessor {
  
          DirectGraph graph = meth.getOrBuildGraph();
  
@@ -20,7 +20,7 @@ index 12653a4836d4f864154310b6115369e943f36fd7..6d40b8a1dc102b0cdf90aed615e74c10
  
              if (exprent.type == Exprent.EXPRENT_ASSIGNMENT) {
                AssignmentExprent asexpr = (AssignmentExprent)exprent;
-@@ -718,7 +718,7 @@ public class NestedClassProcessor {
+@@ -716,7 +716,7 @@ public class NestedClassProcessor {
                      mapFieldsToNewVars.containsKey(InterpreterUtil.makeUniqueKey(child.classStruct.qualifiedName,
                                                                                   InterpreterUtil.makeUniqueKey(fexpr.getName(), fexpr
                                                                                     .getDescriptor().descriptorString)))) {
@@ -29,7 +29,7 @@ index 12653a4836d4f864154310b6115369e943f36fd7..6d40b8a1dc102b0cdf90aed615e74c10
                  }
  
                  //if(fexpr.getClassname().equals(child.classStruct.qualifiedName) &&
-@@ -734,13 +734,13 @@ public class NestedClassProcessor {
+@@ -732,13 +732,13 @@ public class NestedClassProcessor {
                if (invexpr.getFunctype() == InvocationExprent.TYP_INIT) {
                  // invocation of the super constructor in an anonymous class
                  child.superInvocation = invexpr; // FIXME: save original names of parameters
@@ -46,7 +46,7 @@ index 12653a4836d4f864154310b6115369e943f36fd7..6d40b8a1dc102b0cdf90aed615e74c10
            }
  
            private Exprent replaceExprent(Exprent exprent) {
-@@ -1191,4 +1191,43 @@ public class NestedClassProcessor {
+@@ -1189,4 +1189,43 @@ public class NestedClassProcessor {
        return keyfield.hashCode() + varpaar.hashCode();
      }
    }
