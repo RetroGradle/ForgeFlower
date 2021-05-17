@@ -17,6 +17,7 @@ sourceSets {
 repositories {
     mavenCentral()
     maven { url = "https://libraries.minecraft.net/" }
+    maven { url = 'https://maven.minecraftforge.net/' }
 }
 
 dependencies {
@@ -27,6 +28,7 @@ dependencies {
     testImplementation 'org.hamcrest:hamcrest-core:1.3'
     testImplementation 'org.assertj:assertj-core:3.+'
     testImplementation 'com.google.code.gson:gson:2.8.0'
+    testImplementation 'net.minecraftforge:DiffPatch:2.0.5:all'
 }
 
 java.toolchain {
