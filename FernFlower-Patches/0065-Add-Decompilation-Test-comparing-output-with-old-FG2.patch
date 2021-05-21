@@ -3,7 +3,6 @@ From: AterAnimAvis <AterAnimAvis@gmail.com>
 Date: Mon, 17 May 2021 19:32:29 +0100
 Subject: [PATCH] Add Decompilation Test comparing output with old FG2
 
-Signed-off-by: AterAnimAvis <AterAnimAvis@gmail.com>
 
 diff --git a/test/org/jetbrains/java/decompiler/RetroGradleComparisonTest.java b/test/org/jetbrains/java/decompiler/RetroGradleComparisonTest.java
 new file mode 100644
