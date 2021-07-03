@@ -798,15 +798,16 @@ index 368407ef017b524f7e26940606e7b50714c7d96a..b4af1f7cfd661fe456121f999a495c89
 +  @Test public void testMCContainerPlayer() { doTest("net/minecraft/command/PlayerSelector"); }
  }
 diff --git a/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java b/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
-index 2ae6da55e0d8ecb2fbdb39a6e42d1f179ac32203..087c8102c11b1258d8e3f1615fe64f745b8587d6 100644
+index 219d51e5d21feac7461f5b894b02ba76fddeaf16..8b5b16391e00ce3d58534acc2e7a6ba48528d474 100644
 --- a/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
 +++ b/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
-@@ -16,83 +16,47 @@
+@@ -15,83 +15,50 @@
+  */
  package org.jetbrains.java.decompiler;
  
- import org.hamcrest.Matchers;
--import org.jetbrains.java.decompiler.code.CodeConstants;
--import org.jetbrains.java.decompiler.main.DecompilerContext;
++import org.assertj.core.api.Assertions;
+ import org.jetbrains.java.decompiler.code.CodeConstants;
+ import org.jetbrains.java.decompiler.main.DecompilerContext;
  import org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler;
 -import org.jetbrains.java.decompiler.main.extern.IAbstractParameterRenamer;
  import org.jetbrains.java.decompiler.main.extern.IFernflowerPreferences;
@@ -893,7 +894,7 @@ index 2ae6da55e0d8ecb2fbdb39a6e42d1f179ac32203..087c8102c11b1258d8e3f1615fe64f74
    }
  
  //  @Test
-@@ -108,116 +72,32 @@ public class MinecraftDecompilationTest {
+@@ -107,116 +74,32 @@ public class MinecraftDecompilationTest {
  //  }
  
    @Test
@@ -1020,7 +1021,7 @@ index 2ae6da55e0d8ecb2fbdb39a6e42d1f179ac32203..087c8102c11b1258d8e3f1615fe64f74
            }
          }
        }
-@@ -228,14 +108,17 @@ public class MinecraftDecompilationTest {
+@@ -227,14 +110,17 @@ public class MinecraftDecompilationTest {
      catch (IOException e) {
        throw new RuntimeException(e);
      }
@@ -1036,7 +1037,7 @@ index 2ae6da55e0d8ecb2fbdb39a6e42d1f179ac32203..087c8102c11b1258d8e3f1615fe64f74
 +  private static void compareDirectories(File expected, File actual) {
 +    String[] expectedList = expected.list();
 +    String[] actualList = actual.list();
-+    assertThat(actualList, Matchers.arrayContainingInAnyOrder(expectedList));
++    Assertions.assertThat(actualList).containsExactlyInAnyOrder(expectedList);
 +    for (String name : expectedList) {
 +      File child = new File(expected, name);
 +      if (child.isDirectory()) {

@@ -4,6 +4,38 @@ Date: Sun, 25 Oct 2015 10:29:37 -0400
 Subject: [PATCH] Bulk test for MC
 
 
+diff --git a/test/org/jetbrains/java/decompiler/BulkDecompilationTest.java b/test/org/jetbrains/java/decompiler/BulkDecompilationTest.java
+index 1b5353b37a497db848f47d9aa15459ad3fff3066..83613d4ff0db3cfeaf97cefa6f88c7d63832e826 100644
+--- a/test/org/jetbrains/java/decompiler/BulkDecompilationTest.java
++++ b/test/org/jetbrains/java/decompiler/BulkDecompilationTest.java
+@@ -15,7 +15,6 @@
+  */
+ package org.jetbrains.java.decompiler;
+ 
+-import org.hamcrest.Matchers;
+ import org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler;
+ import org.jetbrains.java.decompiler.util.InterpreterUtil;
+ import org.junit.After;
+@@ -27,8 +26,8 @@ import java.util.Enumeration;
+ import java.util.zip.ZipEntry;
+ import java.util.zip.ZipFile;
+ 
+-import static org.junit.Assert.assertThat;
+-import static org.junit.Assert.assertTrue;
++import static org.assertj.core.api.Assertions.*;
++import static org.junit.Assert.*;
+ 
+ public class BulkDecompilationTest {
+   private DecompilerTestFixture fixture;
+@@ -99,7 +98,7 @@ public class BulkDecompilationTest {
+   private static void compareDirectories(File expected, File actual) {
+     String[] expectedList = expected.list();
+     String[] actualList = actual.list();
+-    assertThat(actualList, Matchers.arrayContainingInAnyOrder(expectedList));
++    assertThat(actualList).containsExactlyInAnyOrder(expectedList);
+     for (String name : expectedList) {
+       File child = new File(expected, name);
+       if (child.isDirectory()) {
 diff --git a/test/org/jetbrains/java/decompiler/DecompilerTestFixture.java b/test/org/jetbrains/java/decompiler/DecompilerTestFixture.java
 index f2c344a925dda9d1081aa867987147fd3fb3664e..77eda8797ac72262d0c6dabbbd06a0ed0f481596 100644
 --- a/test/org/jetbrains/java/decompiler/DecompilerTestFixture.java
@@ -49,13 +81,14 @@ index f2c344a925dda9d1081aa867987147fd3fb3664e..77eda8797ac72262d0c6dabbbd06a0ed
    }
  }
 diff --git a/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java b/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
-index 087c8102c11b1258d8e3f1615fe64f745b8587d6..2ae6da55e0d8ecb2fbdb39a6e42d1f179ac32203 100644
+index 087c8102c11b1258d8e3f1615fe64f745b8587d6..219d51e5d21feac7461f5b894b02ba76fddeaf16 100644
 --- a/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
 +++ b/test/org/jetbrains/java/decompiler/MinecraftDecompilationTest.java
-@@ -16,47 +16,83 @@
+@@ -15,48 +15,83 @@
+  */
  package org.jetbrains.java.decompiler;
  
- import org.hamcrest.Matchers;
+-import org.hamcrest.Matchers;
 +import org.jetbrains.java.decompiler.code.CodeConstants;
 +import org.jetbrains.java.decompiler.main.DecompilerContext;
  import org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler;
@@ -144,7 +177,7 @@ index 087c8102c11b1258d8e3f1615fe64f745b8587d6..2ae6da55e0d8ecb2fbdb39a6e42d1f17
    }
  
  //  @Test
-@@ -72,32 +108,116 @@ public class MinecraftDecompilationTest {
+@@ -72,32 +107,116 @@ public class MinecraftDecompilationTest {
  //  }
  
    @Test
@@ -271,7 +304,7 @@ index 087c8102c11b1258d8e3f1615fe64f745b8587d6..2ae6da55e0d8ecb2fbdb39a6e42d1f17
            }
          }
        }
-@@ -108,17 +228,14 @@ public class MinecraftDecompilationTest {
+@@ -108,17 +227,14 @@ public class MinecraftDecompilationTest {
      catch (IOException e) {
        throw new RuntimeException(e);
      }
